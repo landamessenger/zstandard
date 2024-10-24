@@ -1,0 +1,18 @@
+name: zstandard_platform_interface
+description: A common platform interface for the zstandard plugin.
+version: 1.0.0
+homepage:
+
+environment:
+  sdk: ^3.5.3
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0

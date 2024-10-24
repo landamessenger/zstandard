@@ -1,0 +1,29 @@
+name: zstandard_web
+description: "A new Flutter plugin project."
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: ^3.5.3
+  flutter: '>=3.3.0'
+
+flutter:
+  plugin:
+    implements: zstandard
+    platforms:
+      web:
+        pluginClass: ZstandardWeb
+        fileName: zstandard_web.dart
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  zstandard_platform_interface:
+    path: ../zstandard_platform_interface
+  web: ">=0.5.1 <2.0.0"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
