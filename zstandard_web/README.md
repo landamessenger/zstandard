@@ -1,6 +1,25 @@
 # zstandard_platform_web
 
-`zstd_wasm.js` and `zstd_wasm.wasm` generation:
+The web implementation of [`zstandard`](https://pub.dev/packages/zstandard).
+
+## Installation
+
+Copy [`zstd.js`](https://github.com/landamessenger/zstandard/raw/refs/heads/master/zstandard_web/blob/zstd.js) and [`zstd.wasm`](https://github.com/landamessenger/zstandard/raw/refs/heads/master/zstandard_web/blob/zstd.wasm) on the `web/` folder.
+
+Include the library inside the `<head>`:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="zstd.js"></script>
+</head>
+</html>
+```
+
+## Generation
+
+`zstd.js` and `zstd.wasm` generation:
 
 ```bash
 git clone https://github.com/emscripten-core/emsdk.git
@@ -15,9 +34,9 @@ cd emsdk
 
 ./emsdk activate latest
 
-source "/Users/efrain.espada@feverup.com/Development/emsdk/emsdk_env.sh"
+source "$HOME/Development/emsdk/emsdk_env.sh"
 
-echo 'source "/Users/efrain.espada@feverup.com/Development/emsdk/emsdk_env.sh"' >> $HOME/.zprofile
+echo 'source "$HOME/Development/emsdk/emsdk_env.sh"' >> $HOME/.zprofile
 
 ```
 
@@ -98,15 +117,4 @@ function decompressData(compressedData) {
         return decompressedData;
     }
 }
-```
-
-Include the library inside the `<head>`:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <script src="zstd.js"></script>
-</head>
-</html>
 ```

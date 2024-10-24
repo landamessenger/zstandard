@@ -1,7 +1,8 @@
 name: zstandard_web
 description: "A new Flutter plugin project."
-version: 0.0.1
-homepage:
+version: 1.0.0
+homepage: https://landamessenger.com
+repository: https://github.com/landamessenger/zstandard/tree/master/zstandard_web
 
 environment:
   sdk: ^3.5.3
@@ -20,8 +21,7 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  zstandard_platform_interface:
-    path: ../zstandard_platform_interface
+  zstandard_platform_interface: ^1.0.0
   web: ">=0.5.1 <2.0.0"
 
 dev_dependencies:
