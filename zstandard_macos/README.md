@@ -16,3 +16,4 @@ void act() async {
 }
 ```
 
+<p align="center"><img width="90%" vspace="10" src="images/sample.png"></p>
