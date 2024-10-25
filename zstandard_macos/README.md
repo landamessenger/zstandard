@@ -15,3 +15,4 @@ void act() async {
   Uint8List? decompressed = await zstandard.decompress(compressed ?? Uint8List(0));
 }
 ```
+
