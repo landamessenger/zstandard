@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:zstandard/src/platform_manager.dart';
-import 'package:zstandard_macos/zstandard_macos.dart';
+import 'package:zstandard/src/zstandard_impl_web.dart'
+    if (dart.library.io) 'package:zstandard/src/zstandard_impl_native.dart';
 import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
 
 class Zstandard {
@@ -14,17 +14,7 @@ class Zstandard {
     return _instance!;
   }
 
-  PlatformManager get platformManager => PlatformManager();
-
-  bool init = false;
-
-  ZstandardPlatform get instance {
-    if (!init && platformManager.isMacOS) {
-      ZstandardMacOS.registerWith();
-    }
-    init = true;
-    return ZstandardPlatform.instance;
-  }
+  ZstandardPlatform get instance => ZstandardImpl().instance;
 
   Future<String?> getPlatformVersion() => instance.getPlatformVersion();
 

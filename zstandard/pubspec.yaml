@@ -29,8 +29,7 @@ dependencies:
   # zstandard_android: ^6.3.0
   # zstandard_ios: ^6.2.4
   # zstandard_linux: ^3.1.0
-  zstandard_macos:
-    path: ../zstandard_macos
+  zstandard_macos: ^1.0.0
   zstandard_platform_interface: ^1.0.0
   zstandard_web: ^1.0.0
 # zstandard_windows: ^3.1.0
