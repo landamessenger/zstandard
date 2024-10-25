@@ -1,7 +1,8 @@
 name: zstandard_android
-description: "A new Flutter FFI plugin project."
-version: 0.0.1
-homepage:
+description: Android platform implementation of zstandard
+version: 1.0.0
+homepage: https://landamessenger.com
+repository: https://github.com/landamessenger/zstandard/tree/master/zstandard_android
 
 environment:
   sdk: ^3.5.3
