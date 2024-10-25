@@ -1,3 +1,4 @@
+import 'package:zstandard_android/zstandard_android.dart';
 import 'package:zstandard_ios/zstandard_ios.dart';
 import 'package:zstandard_macos/zstandard_macos.dart';
 import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
@@ -24,6 +25,8 @@ class ZstandardImpl {
         ZstandardIOS.registerWith();
       } else if (platformManager.isMacOS) {
         ZstandardMacOS.registerWith();
+      } else if (platformManager.isAndroid) {
+        ZstandardAndroid.registerWith();
       }
     }
     init = true;
