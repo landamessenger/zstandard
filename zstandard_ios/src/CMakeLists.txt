@@ -3,35 +3,35 @@
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
-project(zstandard_macos_library VERSION 0.0.1 LANGUAGES C)
+project(zstandard_ios_library VERSION 0.0.1 LANGUAGES C)
 
 # Encuentra los archivos C de Zstd
 file(GLOB ZSTD_SRC
-        "zstd/common/*.c"
-        "zstd/compress/*.c"
-        "zstd/decompress/*.c"
+        "common/*.c"
+        "compress/*.c"
+        "decompress/*.c"
 )
 
 # Agrega el ejecutable para el plugin
-add_library(zstandard_macos SHARED
+add_library(zstandard_ios SHARED
         # "Classes/plugin_code.cpp"
         ${ZSTD_SRC}
 )
 
-add_library(zstandard_macos SHARED
-  "zstandard_macos.c"
+add_library(zstandard_ios SHARED
+  "zstandard_ios.c"
 )
 
-target_include_directories(zstandard_macos PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/zstd"
-    "${CMAKE_CURRENT_SOURCE_DIR}/zstd/common"
-    "${CMAKE_CURRENT_SOURCE_DIR}/zstd/compress"
-    "${CMAKE_CURRENT_SOURCE_DIR}/zstd/decompress"
+target_include_directories(zstandard_ios PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/common"
+    "${CMAKE_CURRENT_SOURCE_DIR}/compress"
+    "${CMAKE_CURRENT_SOURCE_DIR}/decompress"
 )
 
-set_target_properties(zstandard_macos PROPERTIES
-  PUBLIC_HEADER zstandard_macos.h
-  OUTPUT_NAME "zstandard_macos"
+set_target_properties(zstandard_ios PROPERTIES
+  PUBLIC_HEADER zstandard_ios.h
+  OUTPUT_NAME "zstandard_ios"
 )
 
-target_compile_definitions(zstandard_macos PUBLIC DART_SHARED_LIB)
+target_compile_definitions(zstandard_ios PUBLIC DART_SHARED_LIB)

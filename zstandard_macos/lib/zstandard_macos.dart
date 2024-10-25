@@ -12,14 +12,8 @@ import 'zstandard_macos_bindings_generated.dart'; // Binding generated
 const String _libName = 'zstandard_macos';
 
 final DynamicLibrary _dylib = () {
-  if (Platform.isMacOS || Platform.isIOS) {
+  if (Platform.isMacOS) {
     return DynamicLibrary.open('$_libName.framework/$_libName');
-  }
-  if (Platform.isAndroid || Platform.isLinux) {
-    return DynamicLibrary.open('lib$_libName.so');
-  }
-  if (Platform.isWindows) {
-    return DynamicLibrary.open('$_libName.dll');
   }
   throw UnsupportedError('Platform not supported: ${Platform.operatingSystem}');
 }();

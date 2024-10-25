@@ -1,5 +1,5 @@
 # Run with `dart run ffigen --config ffigen.yaml`.
-name: ZstandardAndroidBindings
+name: ZstandardAndroidFfiBindings
 description: |
   Bindings for `src/zstandard_android.h`.
 
@@ -7,9 +7,9 @@ description: |
 output: 'lib/zstandard_android_bindings_generated.dart'
 headers:
   entry-points:
-    - 'src/zstandard_android.h'
+    - 'src/zstd.h'
   include-directives:
-    - 'src/zstandard_android.h'
+    - 'src/zstd.h'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

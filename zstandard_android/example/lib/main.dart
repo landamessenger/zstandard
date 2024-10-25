@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:zstandard_android/zstandard_android.dart' as zstandard_android;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:zstandard_android/zstandard_android.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,55 +17,134 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late int sumResult;
-  late Future<int> sumAsyncResult;
+  final Uint8List _originalData = Uint8List.fromList(
+    [
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30
+    ],
+  );
+
+  Uint8List? _compressedData;
+
+  Uint8List? _decompressedData;
+
+  String _platformVersion = 'Unknown';
+
+  final _zstandard = ZstandardAndroid();
 
   @override
   void initState() {
     super.initState();
-    sumResult = zstandard_android.sum(1, 2);
-    sumAsyncResult = zstandard_android.sumAsync(3, 4);
+    // initPlatformState();
+    checkCompression();
+  }
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initPlatformState() async {
+    String platformVersion;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    // We also handle the message potentially returning null.
+    try {
+      platformVersion =
+          await _zstandard.getPlatformVersion() ??
+              'Unknown platform version';
+    } on PlatformException {
+      platformVersion = 'Failed to get platform version.';
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
+
+    setState(() {
+      _platformVersion = platformVersion;
+    });
+  }
+
+  Future<void> checkCompression() async {
+    Uint8List? compressed;
+    Uint8List? decompressed;
+
+    try {
+      compressed = await _zstandard.compress(_originalData);
+      decompressed = await _zstandard
+          .decompress(compressed ?? Uint8List(0));
+      // decompressed = await _zstandard.decompress(Uint8List.fromList([40, 181, 47, 253, 32, 45, 125, 0, 0, 72, 10, 20, 30, 4, 3, 3, 10, 20, 30, 1, 0, 73, 150, 35]));
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _compressedData = compressed;
+      _decompressedData = decompressed;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    const textStyle = TextStyle(fontSize: 25);
-    const spacerSmall = SizedBox(height: 10);
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Native Packages'),
+          title: const Text('Plugin example app'),
         ),
-        body: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.all(10),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'This calls a native function through FFI that is shipped as source in the package. '
-                  'The native code is built as part of the Flutter Runner build.',
-                  style: textStyle,
-                  textAlign: TextAlign.center,
-                ),
-                spacerSmall,
-                Text(
-                  'sum(1, 2) = $sumResult',
-                  style: textStyle,
-                  textAlign: TextAlign.center,
-                ),
-                spacerSmall,
-                FutureBuilder<int>(
-                  future: sumAsyncResult,
-                  builder: (BuildContext context, AsyncSnapshot<int> value) {
-                    final displayValue =
-                        (value.hasData) ? value.data : 'loading';
-                    return Text(
-                      'await sumAsync(3, 4) = $displayValue',
-                      style: textStyle,
-                      textAlign: TextAlign.center,
-                    );
-                  },
-                ),
+                Text('Running on: $_platformVersion\n'),
+                Text('Original: ${_originalData.join(',')}\n'),
+                Text('Compressed: ${_compressedData?.join(',')}\n'),
+                Text('Decompressed: ${_decompressedData?.join(',')}\n'),
               ],
             ),
           ),
