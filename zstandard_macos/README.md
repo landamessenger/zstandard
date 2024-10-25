@@ -1,17 +1,17 @@
 # zstandard_macos
 
-`libzstd.dylib` generation:
+The macOS implementation of [`zstandard`](https://pub.dev/packages/zstandard).
 
-```bash
-brew install cmake
+## Usage
 
-git clone https://github.com/facebook/zstd.git
+```dart
+void act() async {
+  final zstandard = ZstandardMacOS();
 
-cd zstd/build/cmake/
+  Uint8List original = Uint8List.fromList([...]);
 
-cmake .
-
-make
+  Uint8List? compressed = await zstandard.compress(original);
+  
+  Uint8List? decompressed = await zstandard.decompress(compressed ?? Uint8List(0));
+}
 ```
-
-

@@ -31,10 +31,8 @@ dependencies:
   # zstandard_linux: ^3.1.0
   zstandard_macos:
     path: ../zstandard_macos
-  zstandard_platform_interface:
-    path: ../zstandard_platform_interface
-  zstandard_web:
-    path: ../zstandard_web
+  zstandard_platform_interface: ^1.0.0
+  zstandard_web: ^1.0.0
 # zstandard_windows: ^3.1.0
 
 dev_dependencies:

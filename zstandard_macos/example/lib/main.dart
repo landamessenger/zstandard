@@ -73,7 +73,7 @@ class _MyAppState extends State<MyApp> {
 
   String _platformVersion = 'Unknown';
 
-  final _zstandard = ZstandardMacos();
+  final _zstandard = ZstandardMacOS();
 
   @override
   void initState() {
@@ -113,6 +113,7 @@ class _MyAppState extends State<MyApp> {
       compressed = await _zstandard.compress(_originalData);
       decompressed = await _zstandard
           .decompress(compressed ?? Uint8List(0));
+      // decompressed = await _zstandard.decompress(Uint8List.fromList([40, 181, 47, 253, 32, 45, 125, 0, 0, 72, 10, 20, 30, 4, 3, 3, 10, 20, 30, 1, 0, 73, 150, 35]));
     } catch (e) {
       if (kDebugMode) {
         print(e);

@@ -17,6 +17,20 @@ Include the library inside the `<head>`:
 </html>
 ```
 
+## Usage
+
+```dart
+void act() async {
+  final zstandard = ZstandardWeb();
+
+  Uint8List original = Uint8List.fromList([...]);
+
+  Uint8List? compressed = await zstandard.compress(original);
+  
+  Uint8List? decompressed = await zstandard.decompress(compressed ?? Uint8List(0));
+}
+```
+
 ## Generation
 
 `zstd.js` and `zstd.wasm` generation:
