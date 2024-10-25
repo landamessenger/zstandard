@@ -28,13 +28,12 @@ dependencies:
   flutter:
     sdk: flutter
   # zstandard_android: ^6.3.0
-  zstandard_ios:
-    path: ../zstandard_ios
+  zstandard_ios: ^1.0.0
   # zstandard_linux: ^3.1.0
   zstandard_macos: ^1.0.0
   zstandard_platform_interface: ^1.0.0
   zstandard_web: ^1.0.0
-# zstandard_windows: ^3.1.0
+  # zstandard_windows: ^3.1.0
 
 dev_dependencies:
   flutter_test:
