@@ -1,41 +1,16 @@
-
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'zstandard_ios_bindings_generated.dart';
+import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
+import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
 
-/// A very short-lived native function.
-///
-/// For very short-lived functions, it is fine to call them on the main isolate.
-/// They will block the Dart execution while running the native function, so
-/// only do this for native functions which are guaranteed to be short-lived.
-int sum(int a, int b) => _bindings.sum(a, b);
-
-/// A longer lived native function, which occupies the thread calling it.
-///
-/// Do not call these kind of native functions in the main isolate. They will
-/// block Dart execution. This will cause dropped frames in Flutter applications.
-/// Instead, call these native functions on a separate isolate.
-///
-/// Modify this to suit your own use case. Example use cases:
-///
-/// 1. Reuse a single isolate for various different kinds of requests.
-/// 2. Use multiple helper isolates for parallel execution.
-Future<int> sumAsync(int a, int b) async {
-  final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
-  final int requestId = _nextSumRequestId++;
-  final _SumRequest request = _SumRequest(requestId, a, b);
-  final Completer<int> completer = Completer<int>();
-  _sumRequests[requestId] = completer;
-  helperIsolateSendPort.send(request);
-  return completer.future;
-}
+import 'zstandard_ios_bindings_generated.dart'; // Binding generated
 
 const String _libName = 'zstandard_ios';
 
-/// The dynamic library in which the symbols for [ZstandardIosBindings] can be found.
 final DynamicLibrary _dylib = () {
   if (Platform.isMacOS || Platform.isIOS) {
     return DynamicLibrary.open('$_libName.framework/$_libName');
@@ -46,86 +21,249 @@ final DynamicLibrary _dylib = () {
   if (Platform.isWindows) {
     return DynamicLibrary.open('$_libName.dll');
   }
-  throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
+  throw UnsupportedError('Platform not supported: ${Platform.operatingSystem}');
 }();
 
-/// The bindings to the native functions in [_dylib].
-final ZstandardIosBindings _bindings = ZstandardIosBindings(_dylib);
+final ZstandardIosFfiBindings _bindings = ZstandardIosFfiBindings(_dylib);
 
+class ZstandardIOS extends ZstandardPlatform {
+  /// A constructor that allows tests to override the window object used by the plugin.
+  ZstandardIOS();
 
-/// A request to compute `sum`.
-///
-/// Typically sent from one isolate to another.
-class _SumRequest {
-  final int id;
-  final int a;
-  final int b;
+  final methodChannel = const MethodChannel('plugins.flutter.io/zstandard');
 
-  const _SumRequest(this.id, this.a, this.b);
+  /// Registers this class as the default instance of [ZstandardPlatform].
+  static void registerWith() {
+    ZstandardPlatform.instance = ZstandardIOS();
+  }
+
+  @override
+  Future<String?> getPlatformVersion() async {
+    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    return version;
+  }
+
+  @override
+  Future<Uint8List?> compress(
+    Uint8List data, {
+    int compressionLevel = 3,
+  }) async {
+    final int srcSize = data.lengthInBytes;
+    final Pointer<Uint8> src = malloc.allocate<Uint8>(srcSize);
+    src.asTypedList(srcSize).setAll(0, data);
+
+    final int dstCapacity = _bindings.ZSTD_compressBound(srcSize);
+    final Pointer<Uint8> dst = malloc.allocate<Uint8>(dstCapacity);
+
+    try {
+      final int compressedSize = _bindings.ZSTD_compress(
+        dst.cast(),
+        dstCapacity,
+        src.cast(),
+        srcSize,
+        compressionLevel,
+      );
+
+      if (compressedSize > 0) {
+        return Uint8List.fromList(dst.asTypedList(compressedSize));
+      } else {
+        return null;
+      }
+    } finally {
+      malloc.free(src);
+      malloc.free(dst);
+    }
+  }
+
+  @override
+  Future<Uint8List?> decompress(Uint8List data) async {
+    final int compressedSize = data.lengthInBytes;
+    final Pointer<Uint8> src = malloc.allocate<Uint8>(compressedSize);
+    src.asTypedList(compressedSize).setAll(0, data);
+
+    final int dstCapacity = compressedSize * 4;
+    final Pointer<Uint8> dst = malloc.allocate<Uint8>(dstCapacity);
+
+    try {
+      final int decompressedSize = _bindings.ZSTD_decompress(
+        dst.cast(),
+        dstCapacity,
+        src.cast(),
+        compressedSize,
+      );
+
+      if (decompressedSize > 0) {
+        return Uint8List.fromList(dst.asTypedList(decompressedSize));
+      } else {
+        return null;
+      }
+    } finally {
+      malloc.free(src);
+      malloc.free(dst);
+    }
+  }
 }
 
-/// A response with the result of `sum`.
-///
-/// Typically sent from one isolate to another.
-class _SumResponse {
+int compress(
+  Pointer<Void> dst,
+  int dstCapacity,
+  Pointer<Void> src,
+  int srcSize,
+  int compressionLevel,
+) =>
+    _bindings.ZSTD_compress(
+      dst,
+      dstCapacity,
+      src,
+      srcSize,
+      compressionLevel,
+    );
+
+int decompress(
+  Pointer<Void> dst,
+  int dstCapacity,
+  Pointer<Void> src,
+  int compressedSize,
+) =>
+    _bindings.ZSTD_decompress(
+      dst,
+      dstCapacity,
+      src,
+      compressedSize,
+    );
+
+Future<int> compressAsync(
+  Pointer<Void> dst,
+  int dstCapacity,
+  Pointer<Void> src,
+  int srcSize,
+  int compressionLevel,
+) async {
+  final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
+  final int requestId = _nextCompressRequestId++;
+  final _CompressRequest request = _CompressRequest(
+      requestId, dst, dstCapacity, src, srcSize, compressionLevel);
+  final Completer<int> completer = Completer<int>();
+  _compressRequests[requestId] = completer;
+  helperIsolateSendPort.send(request);
+  return completer.future;
+}
+
+Future<int> decompressAsync(
+  Pointer<Void> dst,
+  int dstCapacity,
+  Pointer<Void> src,
+  int compressedSize,
+) async {
+  final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
+  final int requestId = _nextDecompressRequestId++;
+  final _DecompressRequest request =
+      _DecompressRequest(requestId, dst, dstCapacity, src, compressedSize);
+  final Completer<int> completer = Completer<int>();
+  _decompressRequests[requestId] = completer;
+  helperIsolateSendPort.send(request);
+  return completer.future;
+}
+
+// ==== Communication between isolates for asynchronous compression and decompression ==== //
+
+/// Application for compression.
+class _CompressRequest {
+  final int id;
+  final Pointer<Void> dst;
+  final int dstCapacity;
+  final Pointer<Void> src;
+  final int srcSize;
+  final int compressionLevel;
+
+  const _CompressRequest(this.id, this.dst, this.dstCapacity, this.src,
+      this.srcSize, this.compressionLevel);
+}
+
+/// Response with the compression result.
+class _CompressResponse {
   final int id;
   final int result;
 
-  const _SumResponse(this.id, this.result);
+  const _CompressResponse(this.id, this.result);
 }
 
-/// Counter to identify [_SumRequest]s and [_SumResponse]s.
-int _nextSumRequestId = 0;
+/// Request for decompression.
+class _DecompressRequest {
+  final int id;
+  final Pointer<Void> dst;
+  final int dstCapacity;
+  final Pointer<Void> src;
+  final int compressedSize;
 
-/// Mapping from [_SumRequest] `id`s to the completers corresponding to the correct future of the pending request.
-final Map<int, Completer<int>> _sumRequests = <int, Completer<int>>{};
+  const _DecompressRequest(
+      this.id, this.dst, this.dstCapacity, this.src, this.compressedSize);
+}
 
-/// The SendPort belonging to the helper isolate.
+/// Response with the result of the decompression.
+class _DecompressResponse {
+  final int id;
+  final int result;
+
+  const _DecompressResponse(this.id, this.result);
+}
+
+/// Counters to identify compression and decompression requests.
+int _nextCompressRequestId = 0;
+int _nextDecompressRequestId = 0;
+
+/// Mapping of requests to completers for compression and decompression.
+final Map<int, Completer<int>> _compressRequests = <int, Completer<int>>{};
+final Map<int, Completer<int>> _decompressRequests = <int, Completer<int>>{};
+
+/// Port for sending requests to the auxiliary isolate.
 Future<SendPort> _helperIsolateSendPort = () async {
-  // The helper isolate is going to send us back a SendPort, which we want to
-  // wait for.
   final Completer<SendPort> completer = Completer<SendPort>();
-
-  // Receive port on the main isolate to receive messages from the helper.
-  // We receive two types of messages:
-  // 1. A port to send messages on.
-  // 2. Responses to requests we sent.
   final ReceivePort receivePort = ReceivePort()
     ..listen((dynamic data) {
       if (data is SendPort) {
-        // The helper isolate sent us the port on which we can sent it requests.
         completer.complete(data);
         return;
       }
-      if (data is _SumResponse) {
-        // The helper isolate sent us a response to a request we sent.
-        final Completer<int> completer = _sumRequests[data.id]!;
-        _sumRequests.remove(data.id);
+      if (data is _CompressResponse) {
+        final Completer<int> completer = _compressRequests[data.id]!;
+        _compressRequests.remove(data.id);
         completer.complete(data.result);
         return;
       }
-      throw UnsupportedError('Unsupported message type: ${data.runtimeType}');
+      if (data is _DecompressResponse) {
+        final Completer<int> completer = _decompressRequests[data.id]!;
+        _decompressRequests.remove(data.id);
+        completer.complete(data.result);
+        return;
+      }
+      throw UnsupportedError('Message type not supported: ${data.runtimeType}');
     });
 
-  // Start the helper isolate.
   await Isolate.spawn((SendPort sendPort) async {
     final ReceivePort helperReceivePort = ReceivePort()
       ..listen((dynamic data) {
-        // On the helper isolate listen to requests and respond to them.
-        if (data is _SumRequest) {
-          final int result = _bindings.sum_long_running(data.a, data.b);
-          final _SumResponse response = _SumResponse(data.id, result);
+        if (data is _CompressRequest) {
+          final int result = _bindings.ZSTD_compress(data.dst, data.dstCapacity,
+              data.src, data.srcSize, data.compressionLevel);
+          final _CompressResponse response = _CompressResponse(data.id, result);
           sendPort.send(response);
           return;
         }
-        throw UnsupportedError('Unsupported message type: ${data.runtimeType}');
+        if (data is _DecompressRequest) {
+          final int result = _bindings.ZSTD_decompress(
+              data.dst, data.dstCapacity, data.src, data.compressedSize);
+          final _DecompressResponse response =
+              _DecompressResponse(data.id, result);
+          sendPort.send(response);
+          return;
+        }
+        throw UnsupportedError(
+            'Message type not supported: ${data.runtimeType}');
       });
 
-    // Send the port to the main isolate on which we can receive requests.
     sendPort.send(helperReceivePort.sendPort);
   }, receivePort.sendPort);
 
-  // Wait until the helper isolate has sent us back the SendPort on which we
-  // can start sending requests.
   return completer.future;
 }();
