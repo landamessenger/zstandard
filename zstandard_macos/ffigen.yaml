@@ -1,5 +1,5 @@
 # Run with `dart run ffigen --config ffigen.yaml`.
-name: ZstandardMacosFfiBindings
+name: ZstandardMacosBindings
 description: |
   Bindings for `src/zstandard_macos.h`.
 
