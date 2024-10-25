@@ -1,6 +1,6 @@
 name: zstandard_android
 description: Android platform implementation of zstandard
-version: 1.0.0
+version: 1.0.1
 homepage: https://landamessenger.com
 repository: https://github.com/landamessenger/zstandard/tree/master/zstandard_android
 
