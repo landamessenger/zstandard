@@ -33,7 +33,7 @@ void act() async {
 }
 ```
 
-<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/blob/master/zstandard_web/images/sample.png"></p>
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_web/images/sample.png"></p>
 
 ## Generation
 

@@ -1,3 +1,4 @@
+import 'package:zstandard_ios/zstandard_ios.dart';
 import 'package:zstandard_macos/zstandard_macos.dart';
 import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
 
@@ -18,8 +19,12 @@ class ZstandardImpl {
   bool init = false;
 
   ZstandardPlatform get instance {
-    if (!init && platformManager.isMacOS) {
-      ZstandardMacOS.registerWith();
+    if (!init) {
+      if (platformManager.isIOS) {
+        ZstandardIOS.registerWith();
+      } else if (platformManager.isMacOS) {
+        ZstandardMacOS.registerWith();
+      }
     }
     init = true;
     return ZstandardPlatform.instance;
