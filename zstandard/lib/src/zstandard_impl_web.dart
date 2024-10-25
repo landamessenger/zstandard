@@ -10,7 +10,5 @@ class ZstandardImpl {
     return _instance!;
   }
 
-  ZstandardPlatform get instance {
-    return ZstandardPlatform.instance;
-  }
+  ZstandardPlatform get instance => ZstandardPlatform.instance;
 }
