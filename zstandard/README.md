@@ -6,7 +6,7 @@ Zstandard is a high-performance Flutter plugin that provides a pure implementati
 
 |        |      Android       | iOS | [Web](https://flutter.dev/web) | [macOS](https://flutter.dev/desktop) | [Windows](https://flutter.dev/desktop) | [Linux](https://flutter.dev/desktop) | [Fuchsia](https://fuchsia.dev/) |
 |:------:|:------------------:| :-----: |:------------------------------:| :-----: | :-----: | :-----: | :-----: |
-| Status | ❌ | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | ❌ | ❌ | ❌ |
+| Status | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | 🕘 | 🕘 | ❌ |
 | Native |        FFI         | FFI |              WASM              | FFI | FFI | FFI | |
 
 ## Usage
