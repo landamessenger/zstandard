@@ -30,4 +30,7 @@ set_target_properties(zstandard_windows PROPERTIES
   OUTPUT_NAME "zstandard_windows"
 )
 
-target_compile_definitions(zstandard_windows PUBLIC DART_SHARED_LIB)
+target_compile_definitions(zstandard_windows PUBLIC
+        ZSTD_DLL_EXPORT=1
+        DART_SHARED_LIB
+)
