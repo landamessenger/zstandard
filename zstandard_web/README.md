@@ -1,4 +1,6 @@
-# zstandard_platform_web
+[![pub package](https://img.shields.io/pub/v/zstandard_web.svg)](https://pub.dev/packages/zstandard_web)
+
+# zstandard_web
 
 The web implementation of [`zstandard`](https://pub.dev/packages/zstandard).
 

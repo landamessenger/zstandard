@@ -1,3 +1,5 @@
+[![pub package](https://img.shields.io/pub/v/zstandard_platform_interface.svg)](https://pub.dev/packages/zstandard_platform_interface)
+
 # zstandard_platform_interface
 
 A common platform interface for the [`zstandard`][1] plugin.

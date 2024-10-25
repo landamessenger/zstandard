@@ -1,3 +1,5 @@
+[![pub package](https://img.shields.io/pub/v/zstandard_macos.svg)](https://pub.dev/packages/zstandard_macos)
+
 # zstandard_macos
 
 The macOS implementation of [`zstandard`](https://pub.dev/packages/zstandard).
