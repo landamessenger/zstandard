@@ -1,4 +1,4 @@
-package com.example.zstandard_android_example
+package com.landamessenger.zstandard_android_example
 
 import io.flutter.embedding.android.FlutterActivity
 
