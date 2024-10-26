@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zstandard_linux/zstandard_linux.dart';
 
@@ -16,13 +17,69 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final Uint8List _originalData = Uint8List.fromList(
+    [
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30
+    ],
+  );
+
+  Uint8List? _compressedData;
+
+  Uint8List? _decompressedData;
+
   String _platformVersion = 'Unknown';
-  final _zstandardLinuxPlugin = ZstandardLinux();
+
+  final _zstandard = ZstandardLinux();
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    checkCompression();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -32,7 +89,7 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await _zstandardLinuxPlugin.getPlatformVersion() ?? 'Unknown platform version';
+          await _zstandard.getPlatformVersion() ?? 'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -47,6 +104,28 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<void> checkCompression() async {
+    Uint8List? compressed;
+    Uint8List? decompressed;
+
+    try {
+      compressed = await _zstandard.compress(_originalData);
+      decompressed = await _zstandard.decompress(compressed ?? Uint8List(0));
+      // decompressed = await _zstandard.decompress(Uint8List.fromList([40, 181, 47, 253, 32, 45, 125, 0, 0, 72, 10, 20, 30, 4, 3, 3, 10, 20, 30, 1, 0, 73, 150, 35]));
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _compressedData = compressed;
+      _decompressedData = decompressed;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -55,7 +134,18 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Running on: $_platformVersion\n'),
+                Text('Original: ${_originalData.join(',')}\n'),
+                Text('Compressed: ${_compressedData?.join(',')}\n'),
+                Text('Decompressed: ${_decompressedData?.join(',')}\n'),
+              ],
+            ),
+          ),
         ),
       ),
     );
