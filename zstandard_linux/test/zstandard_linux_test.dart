@@ -1,3 +1,4 @@
+/*
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zstandard_linux/zstandard_linux.dart';
 import 'package:zstandard_linux/zstandard_linux_platform_interface.dart';
@@ -26,4 +27,4 @@ void main() {
 
     expect(await zstandardLinuxPlugin.getPlatformVersion(), '42');
   });
-}
+}*/

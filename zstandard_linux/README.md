@@ -1,15 +1,21 @@
+[![pub package](https://img.shields.io/pub/v/zstandard_linux.svg)](https://pub.dev/packages/zstandard_linux)
+
 # zstandard_linux
 
-A new Flutter plugin project.
+The Linux implementation of [`zstandard`](https://pub.dev/packages/zstandard).
 
-## Getting Started
+## Usage
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+```dart
+void act() async {
+  final zstandard = ZstandardLinux();
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+  Uint8List original = Uint8List.fromList([...]);
 
+  Uint8List? compressed = await zstandard.compress(original);
+  
+  Uint8List? decompressed = await zstandard.decompress(compressed ?? Uint8List(0));
+}
+```
+
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_linux/images/sample.png"></p>
