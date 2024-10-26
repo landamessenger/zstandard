@@ -15,8 +15,8 @@ flutter:
         default_package: zstandard_android
       ios:
         default_package: zstandard_ios
-      # linux:
-      #   default_package: zstandard_linux
+      linux:
+        default_package: zstandard_linux
       macos:
         default_package: zstandard_macos
       web:
@@ -29,7 +29,7 @@ dependencies:
     sdk: flutter
   zstandard_android: ^1.0.1
   zstandard_ios: ^1.0.1
-  # zstandard_linux: ^1.0.0
+  zstandard_linux: ^1.0.0
   zstandard_macos: ^1.0.1
   zstandard_platform_interface: ^1.0.0
   zstandard_web: ^1.0.1

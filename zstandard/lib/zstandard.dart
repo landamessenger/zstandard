@@ -4,6 +4,8 @@ import 'package:zstandard/src/zstandard_impl_web.dart'
     if (dart.library.io) 'package:zstandard/src/zstandard_impl_native.dart';
 import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
 
+export 'src/zstandard_ext.dart';
+
 class Zstandard {
   static Zstandard? _instance;
 

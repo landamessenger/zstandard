@@ -1,5 +1,6 @@
 import 'package:zstandard_android/zstandard_android.dart';
 import 'package:zstandard_ios/zstandard_ios.dart';
+import 'package:zstandard_linux/zstandard_linux.dart';
 import 'package:zstandard_macos/zstandard_macos.dart';
 import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
 import 'package:zstandard_windows/zstandard_windows.dart';
@@ -30,6 +31,8 @@ class ZstandardImpl {
         ZstandardAndroid.registerWith();
       } else if (platformManager.isWindows) {
         ZstandardWindows.registerWith();
+      } else if (platformManager.isLinux) {
+        ZstandardLinux.registerWith();
       }
     }
     init = true;
