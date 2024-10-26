@@ -18,7 +18,7 @@ final DynamicLibrary _dylib = () {
   throw UnsupportedError('Platform not supported: ${Platform.operatingSystem}');
 }();
 
-final ZstandardIosFfiBindings _bindings = ZstandardIosFfiBindings(_dylib);
+final ZstandardIosBindings _bindings = ZstandardIosBindings(_dylib);
 
 class ZstandardIOS extends ZstandardPlatform {
   /// A constructor that allows tests to override the window object used by the plugin.

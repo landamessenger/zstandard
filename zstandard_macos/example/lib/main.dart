@@ -82,22 +82,15 @@ class _MyAppState extends State<MyApp> {
     checkCompression();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await _zstandard.getPlatformVersion() ??
-              'Unknown platform version';
+          await _zstandard.getPlatformVersion() ?? 'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
     if (!mounted) return;
 
     setState(() {
@@ -111,9 +104,7 @@ class _MyAppState extends State<MyApp> {
 
     try {
       compressed = await _zstandard.compress(_originalData);
-      decompressed = await _zstandard
-          .decompress(compressed ?? Uint8List(0));
-      // decompressed = await _zstandard.decompress(Uint8List.fromList([40, 181, 47, 253, 32, 45, 125, 0, 0, 72, 10, 20, 30, 4, 3, 3, 10, 20, 30, 1, 0, 73, 150, 35]));
+      decompressed = await _zstandard.decompress(compressed ?? Uint8List(0));
     } catch (e) {
       if (kDebugMode) {
         print(e);

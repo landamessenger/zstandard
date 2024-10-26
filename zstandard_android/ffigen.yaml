@@ -1,5 +1,5 @@
 # Run with `dart run ffigen --config ffigen.yaml`.
-name: ZstandardAndroidFfiBindings
+name: ZstandardAndroidBindings
 description: |
   Bindings for `src/zstandard_android.h`.
 

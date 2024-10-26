@@ -1,10 +1,10 @@
 # Run with `dart run ffigen --config ffigen.yaml`.
-name: ZstandardIosBindings
+name: ZstandardWindowsBindings
 description: |
-  Bindings for `src/zstandard_ios.h`.
+  Bindings for `src/zstandard_windows.h`.
 
   Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
-output: 'lib/zstandard_ios_bindings_generated.dart'
+output: 'lib/zstandard_windows_bindings_generated.dart'
 headers:
   entry-points:
     - 'src/zstd.h'
