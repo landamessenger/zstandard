@@ -8,7 +8,7 @@ This is a Flutter plugin that provides a pure implementation of the zstd compres
 
 |             |      Android       |        iOS         | [Web](https://flutter.dev/web) | [macOS](https://flutter.dev/desktop) | [Windows](https://flutter.dev/desktop) | [Linux](https://flutter.dev/desktop) | [Fuchsia](https://fuchsia.dev/) |
 |:-----------:|:------------------:|:------------------:|:------------------------------:|:------------------------------------:|:--------------------------------------:|:------------------------------------:|:-------------------------------:|
-|   Status    | :heavy_check_mark: | :heavy_check_mark: |       :heavy_check_mark:       |          :heavy_check_mark:          |           :heavy_check_mark:           |                  🕘                  |                ❌                |
+|   Status    | :heavy_check_mark: | :heavy_check_mark: |       :heavy_check_mark:       |          :heavy_check_mark:          |           :heavy_check_mark:           |          :heavy_check_mark:          |                ❌                |
 |   Native    |        FFI         |        FFI         |          WebAssembly           |                 FFI                  |                  FFI                   |                 FFI                  |                ❌                |
 | Precompiled |         No         |         No         |           Yes (wasm)           |                  No                  |                   No                   |                  No                  |                ❌                 |
 
@@ -29,6 +29,18 @@ void act() async {
 }
 ```
 
+With extension functions:
+
+```dart
+void act() async {
+  Uint8List original = Uint8List.fromList([...]);
+
+  Uint8List? compressed = await original.compress();
+  
+  Uint8List? decompressed = await compressed.decompress();
+}
+```
+
 <p align="center"><img width="50%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_android/images/sample.png"></p>
 
 <p align="center"><img width="50%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_ios/images/sample.png"></p>
@@ -38,3 +50,5 @@ void act() async {
 <p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_web/images/sample.png"></p>
 
 <p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_windows/images/sample.png"></p>
+
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_linux/images/sample.png"></p>
