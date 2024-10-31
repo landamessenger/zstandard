@@ -1,6 +1,65 @@
+import 'dart:typed_data';
+
 import 'package:zstandard_cli/zstandard_cli.dart';
 
-void main() {
-  var awesome = Awesome();
-  print('awesome: ${awesome.isAwesome}');
+void main() async {
+  var cli = ZstandardCLI();
+
+  final originalData = Uint8List.fromList(
+    [
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30,
+      10,
+      20,
+      30,
+      4,
+      3,
+      3,
+      10,
+      20,
+      30
+    ],
+  );
+  print('originalData: ${originalData.length}');
+
+  final compressed = await cli.compress(originalData);
+  print('compressed: ${compressed?.length}');
+
+  final decompressed = await cli.decompress(compressed ?? Uint8List(0));
+  print('decompressed: ${decompressed?.length}');
+
 }
