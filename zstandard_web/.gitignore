@@ -1,3 +1,5 @@
 .idea/
 .dart_tool/
 *.lock
+
+build/
