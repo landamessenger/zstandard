@@ -2,16 +2,17 @@ import 'dart:typed_data';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'zstandard_interface.dart';
 import 'zstandard_platform_interface_method_channel.dart';
 
-abstract class ZstandardPlatform extends PlatformInterface {
+abstract class ZstandardPlatform extends PlatformInterface
+    implements ZstandardInterface {
   /// Constructs a ZstandardPlatformInterfacePlatform.
   ZstandardPlatform() : super(token: _token);
 
   static final Object _token = Object();
 
-  static ZstandardPlatform _instance =
-      MethodChannelZstandardPlatform();
+  static ZstandardPlatform _instance = MethodChannelZstandardPlatform();
 
   /// The default instance of [ZstandardPlatform] to use.
   ///
@@ -26,14 +27,17 @@ abstract class ZstandardPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  @override
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
+  @override
   Future<Uint8List?> compress(Uint8List data) {
     throw UnimplementedError('compress() has not been implemented.');
   }
 
+  @override
   Future<Uint8List?> decompress(Uint8List data) {
     throw UnimplementedError('decompress() has not been implemented.');
   }
