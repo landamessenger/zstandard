@@ -12,3 +12,7 @@ pubspec.lock
 zstd/.DS_Store
 
 */build/
+
+zstd/obj/
+zstd/*.dylib
+zstd/*.a
