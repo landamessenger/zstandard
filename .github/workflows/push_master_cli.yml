@@ -1,0 +1,41 @@
+name: Build CLI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "zstandard_cli/**"
+
+jobs:
+  prepare_native_precompiled_lib:
+    name: Download zstd lib directory
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Download source files from facebook/zstd
+        run: |
+          # Descargar y extraer solo el directorio lib desde el repositorio de Facebook
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/facebook/zstd.git
+          cd zstd
+          git sparse-checkout set lib
+          cd ..
+
+          # Mover el directorio lib al destino
+          mv zstd/lib src/
+          
+          # Limpiar el clon del repositorio de facebook/zstd
+          rm -rf zstd/
+
+      - name: List files in zstd/lib to verify
+        run: ls -R src/lib
