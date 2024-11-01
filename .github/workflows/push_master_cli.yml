@@ -26,11 +26,9 @@ jobs:
       - name: Download source files from facebook/zstd
         run: |
           cd zstandard_cli
-          
           git clone https://github.com/facebook/zstd.git
-
+          mkdir src
           mv zstd/lib/* src/
-          
           rm -rf zstd/
 
       - name: List files in zstd/lib to verify
