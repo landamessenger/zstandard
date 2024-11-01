@@ -28,8 +28,16 @@ dart run zstandard_cli:compress any_file 3
 dart run zstandard_cli:decompress any_file.zstd
 ```
 
-## compilation
+## Unix Compilation
 
 ```bash
 cd zstd && make
+```
+
+## Windows Compilation
+
+```bash
+cd zstd
+ 
+build_zstd.bat
 ```
