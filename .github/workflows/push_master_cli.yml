@@ -8,7 +8,7 @@ on:
     #  - "zstandard_cli/**"
 
 jobs:
-  prepare_native_precompiled_lib:
+  prepare_macos_precompiled_lib:
     name: Download zstd lib directory
     runs-on: self-hosted
 
@@ -36,18 +36,27 @@ jobs:
 
       - name: Compile x86-x64 macos lib
         run: |
-          cd zstandard_cli
-          cd builders/macos
-          mkdir build_intel && cd build_intel
-          cmake -DCMAKE_OSX_ARCHITECTURES=x86_64 ..
+          cd zstandard_cli/builders/macos_intel
+          mkdir build && cd build
+          cmake ..
           cmake --build . --config Release
+          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_intel.dylib
           cd ..
+          rm -rf build
 
       - name: Compile arm64 macos lib
         run: |
-          cd zstandard_cli
-          cd builders/macos
-          mkdir build_arm && cd build_arm
+          cd zstandard_cli/builders/macos_arm
+          mkdir build && cd build
           cmake -DCMAKE_OSX_ARCHITECTURES=arm64 ..
           cmake --build . --config Release
+          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_arm.dylib
           cd ..
+          rm -rf build
+
+      - name: Join libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          lipo -create -output livzstandard_macos.dylib libzstandard_macos_intel.dylib libzstandard_macos_arm.dylib
+          rm libzstandard_macos_arm.dylib
+          rm libzstandard_macos_intel.dylib
