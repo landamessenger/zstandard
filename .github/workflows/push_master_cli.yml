@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-    paths:
-      - "zstandard_cli/**"
+    # paths:
+    #  - "zstandard_cli/**"
 
 jobs:
   prepare_native_precompiled_lib:
@@ -25,16 +25,10 @@ jobs:
 
       - name: Download source files from facebook/zstd
         run: |
-          # Descargar y extraer solo el directorio lib desde el repositorio de Facebook
-          git clone --depth 1 --filter=blob:none --sparse https://github.com/facebook/zstd.git
-          cd zstd
-          git sparse-checkout set lib
-          cd ..
+          git clone https://github.com/facebook/zstd.git
 
-          # Mover el directorio lib al destino
-          mv zstd/lib src/
+          mv zstd/lib/* src/
           
-          # Limpiar el clon del repositorio de facebook/zstd
           rm -rf zstd/
 
       - name: List files in zstd/lib to verify
