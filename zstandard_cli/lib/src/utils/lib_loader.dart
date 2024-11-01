@@ -10,7 +10,7 @@ DynamicLibrary openZstdLibrary() {
     return DynamicLibrary.open(libPath);
   } else if (Platform.isMacOS) {
     final libPath =
-        path.join(Directory.current.path, 'lib', 'src', 'bin', 'libzstd.dylib');
+        path.join(Directory.current.path, 'lib', 'src', 'bin', 'libzstandard_macos.dylib');
     return DynamicLibrary.open(libPath);
   } else if (Platform.isLinux) {
     final libPath =
