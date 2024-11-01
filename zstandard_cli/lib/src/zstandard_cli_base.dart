@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:platform/platform.dart';
 
-import 'lib_loader.dart';
+import 'utils/lib_loader.dart';
 import 'zstandard_cli_bindings_generated.dart';
 import 'zstandard_interface.dart';
 
@@ -18,6 +18,7 @@ class ZstandardCLI implements ZstandardInterface {
     Uint8List data, {
     int compressionLevel = 3,
   }) async {
+    if (data.isEmpty) return data;
     final int srcSize = data.lengthInBytes;
     final Pointer<Uint8> src = malloc.allocate<Uint8>(srcSize);
     src.asTypedList(srcSize).setAll(0, data);
@@ -47,6 +48,7 @@ class ZstandardCLI implements ZstandardInterface {
 
   @override
   Future<Uint8List?> decompress(Uint8List data) async {
+    if (data.isEmpty) return data;
     final int compressedSize = data.lengthInBytes;
     final Pointer<Uint8> src = malloc.allocate<Uint8>(compressedSize);
     src.asTypedList(compressedSize).setAll(0, data);

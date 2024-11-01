@@ -6,7 +6,7 @@ import 'package:path/path.dart' as path;
 DynamicLibrary openZstdLibrary() {
   if (Platform.isWindows) {
     final libPath =
-        path.join(Directory.current.path, 'lib', 'src', 'bin', 'zstd.dll');
+        path.join(Directory.current.path, 'lib', 'src', 'bin', 'zstandard_windows.dll');
     return DynamicLibrary.open(libPath);
   } else if (Platform.isMacOS) {
     final libPath =
