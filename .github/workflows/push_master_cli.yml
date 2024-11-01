@@ -34,4 +34,4 @@ jobs:
           rm -rf zstd/
 
       - name: List files in zstd/lib to verify
-        run: ls -R src/lib
+        run: ls -R src
