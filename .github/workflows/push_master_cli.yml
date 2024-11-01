@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-    # paths:
-    #  - "zstandard_cli/**"
+    paths:
+      - "zstandard_cli/**"
 
 jobs:
   prepare_macos_precompiled_lib:
@@ -54,9 +54,7 @@ jobs:
           cd ..
           rm -rf build
 
-      - name: Join libs
+      - name: Verify libs
         run: |
           cd zstandard_cli/lib/src/bin
-          lipo -create -output livzstandard_macos.dylib libzstandard_macos_intel.dylib libzstandard_macos_arm.dylib
-          rm libzstandard_macos_arm.dylib
-          rm libzstandard_macos_intel.dylib
+          lipo -info libzstandard_macos.dylib
