@@ -5,61 +5,9 @@ import 'package:zstandard_cli/zstandard_cli.dart';
 void main() async {
   var cli = ZstandardCLI();
 
-  final originalData = Uint8List.fromList(
-    [
-      10,
-      20,
-      30,
-      4,
-      3,
-      3,
-      10,
-      20,
-      30,
-      10,
-      20,
-      30,
-      4,
-      3,
-      3,
-      10,
-      20,
-      30,
-      10,
-      20,
-      30,
-      4,
-      3,
-      3,
-      10,
-      20,
-      30,
-      10,
-      20,
-      30,
-      4,
-      3,
-      3,
-      10,
-      20,
-      30,
-      10,
-      20,
-      30,
-      4,
-      3,
-      3,
-      10,
-      20,
-      30
-    ],
-  );
-  print('originalData: ${originalData.length}');
+  final originalData = Uint8List.fromList([10, 20, 30]);
 
-  final compressed = await cli.compress(originalData);
-  print('compressed: ${compressed?.length}');
+  final compressed = await cli.compress(originalData, compressionLevel: 3);
 
   final decompressed = await cli.decompress(compressed ?? Uint8List(0));
-  print('decompressed: ${decompressed?.length}');
-
 }

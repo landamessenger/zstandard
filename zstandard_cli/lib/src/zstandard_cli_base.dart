@@ -1,9 +1,8 @@
-// TODO: Put public facing types in this file.
-
 import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:platform/platform.dart';
 
 import 'lib_loader.dart';
 import 'zstandard_cli_bindings_generated.dart';
@@ -52,7 +51,11 @@ class ZstandardCLI implements ZstandardInterface {
     final Pointer<Uint8> src = malloc.allocate<Uint8>(compressedSize);
     src.asTypedList(compressedSize).setAll(0, data);
 
-    final int dstCapacity = compressedSize * 4;
+    final int decompressedSizeExpected =
+        _bindings.ZSTD_getDecompressedSize(src.cast(), compressedSize);
+    final int dstCapacity = decompressedSizeExpected > 0
+        ? decompressedSizeExpected
+        : compressedSize * 20;
     final Pointer<Uint8> dst = malloc.allocate<Uint8>(dstCapacity);
 
     try {
@@ -76,6 +79,19 @@ class ZstandardCLI implements ZstandardInterface {
 
   @override
   Future<String?> getPlatformVersion() {
-    return Future.value("");
+    final platform = LocalPlatform();
+
+    String version;
+    if (platform.isMacOS) {
+      version = 'macOS ${platform.version}';
+    } else if (platform.isWindows) {
+      version = 'Windows ${platform.version}';
+    } else if (platform.isLinux) {
+      version = 'Linux ${platform.version}';
+    } else {
+      version = 'Unknown platform';
+    }
+
+    return Future.value(version);
   }
 }

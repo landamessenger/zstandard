@@ -12,12 +12,6 @@ void main(List<String> args) async {
 
   final filePath = args.firstOrNull;
 
-  int compressionLevel = 3;
-  if (args.length > 1) {
-    String cl = args[1] as String? ?? '3';
-    compressionLevel = int.tryParse(cl) ?? 3;
-  }
-
   if (filePath == null) {
     print('Path not found: $filePath');
     return;
@@ -28,25 +22,27 @@ void main(List<String> args) async {
     return;
   }
 
-  print('Compressing ${file.path} ${await getFileSize(file)}');
+  print('Decompressing ${file.path} ${await getFileSize(file)}');
 
-  final compressed = await cli.compress(
+  final compressed = await cli.decompress(
     file.readAsBytesSync(),
-    compressionLevel: compressionLevel,
   );
   if (compressed == null) {
-    print('Error compressing: $filePath');
+    print('Error decompressing: $filePath');
     return;
   }
 
-  final compressedFilePath = '$filePath$extension';
-  final compressedFile = File(compressedFilePath);
-  compressedFile.writeAsBytesSync(compressed);
-  if (!compressedFile.existsSync()) {
-    print('Compressed file not found: $compressedFilePath');
+  final decompressedFilePath = filePath.endsWith(extension)
+      ? filePath.substring(0, filePath.length - extension.length)
+      : filePath;
+
+  final decompressedFile = File(decompressedFilePath);
+  decompressedFile.writeAsBytesSync(compressed);
+  if (!decompressedFile.existsSync()) {
+    print('Decompressed file not found: $decompressedFilePath');
     return;
   }
 
   print(
-      'Compressed ${compressedFile.path} ${await getFileSize(compressedFile)} \n');
+      'Decompressed ${decompressedFile.path} ${await getFileSize(decompressedFile)} \n');
 }

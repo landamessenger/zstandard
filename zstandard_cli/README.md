@@ -1,42 +1,32 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# zstandard_cli
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+Zstandard (zstd) is a fast, high-compression algorithm developed by Meta (formerly Facebook) designed for real-time compression scenarios. It provides a flexible range of compression levels, allowing both high-speed and high-ratio compression, making it ideal for applications with diverse performance needs. Zstandard is commonly used in data storage, transmission, and backup solutions.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
+`zstandard_cli` is a Dart package providing bindings to the high-performance Zstandard compression library, enabling both in-code and command-line compression and decompression. It leverages FFI for direct access to native Zstandard functionality, allowing efficient data processing in Dart applications, from compressing data in memory to handling files through the CLI.
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+> **Note:** Due to its reliance on native libraries, this package is only available on macOS, Windows, and Linux desktops. It is not compatible with mobile or web platforms.
 
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+## In-code Usage
 
 ```dart
-const like = 'sample';
+void main() async {
+  var cli = ZstandardCLI();
+
+  final originalData = Uint8List.fromList([...]);
+
+  final compressed = await cli.compress(originalData, compressionLevel: 3);
+
+  final decompressed = await cli.decompress(compressed ?? Uint8List(0));
+}
 ```
 
-## Additional information
+## CLI Usage
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+```bash
+dart run zstandard_cli:compress analysis_options.yaml 3
+
+dart run zstandard_cli:decompress analysis_options.yaml.zstd
+```
 
 ## macOS compilation
 
