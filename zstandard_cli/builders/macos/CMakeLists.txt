@@ -7,9 +7,9 @@ project(zstandard_macos_library VERSION 0.0.1 LANGUAGES C)
 
 # Encuentra los archivos C de Zstd
 file(GLOB ZSTD_SRC
-        "../../common/*.c"
-        "../../compress/*.c"
-        "../../decompress/*.c"
+        "../../src/common/*.c"
+        "../../src/compress/*.c"
+        "../../src/decompress/*.c"
 )
 
 # Agrega el ejecutable para el plugin

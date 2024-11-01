@@ -34,4 +34,22 @@ jobs:
           rm -rf zstd/
 
       - name: List files in zstd/lib to verify
-        run: ls -R src
+        run: cd zstandard_cli && ls -R src
+
+      - name: Compile x86-x64 macos lib
+        run: |
+          cd zstandard_cli
+          cd builders/macos
+          mkdir build_intel && cd build_intel
+          cmake -DCMAKE_OSX_ARCHITECTURES=x86_64 ..
+          cmake --build . --config Release
+          cd ..
+
+      - name: Compile arm64 macos lib
+        run: |
+          cd zstandard_cli
+          cd builders/macos
+          mkdir build_arm && cd build_arm
+          cmake -DCMAKE_OSX_ARCHITECTURES=arm64 ..
+          cmake --build . --config Release
+          cd ..
