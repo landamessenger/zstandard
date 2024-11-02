@@ -111,7 +111,7 @@ jobs:
 
       - name: Compile arm64 Linux lib
         run: |
-          cd zstandard_cli/builders/linux_arm64
+          cd zstandard_cli/builders/linux_arm
           mkdir build && cd build
           cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 ..
           cmake --build . --config Release
