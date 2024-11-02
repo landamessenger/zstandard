@@ -67,14 +67,10 @@ jobs:
           lipo -info libzstandard_macos.dylib
 
       - name: Commit and Push Library
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd zstandard_cli/lib/src/bin
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Action"
-          git status
-          ls -a
-          git add libzstandard_macos.dylib
-          git commit -m "gh-action: Add precompiled macOS libraries for x86_64 and arm64"
-          git push origin master
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/libzstandard_macos.dylib'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled macOS libraries for x86_64 and arm64'
