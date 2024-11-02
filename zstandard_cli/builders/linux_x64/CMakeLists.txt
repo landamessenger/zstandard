@@ -29,5 +29,8 @@ set_target_properties(zstandard_linux PROPERTIES
 )
 
 target_compile_definitions(zstandard_linux PUBLIC
+        DYNAMIC_BMI2=0
+        HUF_NEED_BMI2_FUNCTION=0
+        ZSTD_ENABLE_ASM_X86_64_BMI2=0
         DART_SHARED_LIB
 )
