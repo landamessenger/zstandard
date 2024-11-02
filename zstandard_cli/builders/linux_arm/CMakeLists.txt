@@ -29,5 +29,6 @@ set_target_properties(zstandard_linux PROPERTIES
 )
 
 target_compile_definitions(zstandard_linux PUBLIC
+        DYNAMIC_BMI2=0
         DART_SHARED_LIB
 )
