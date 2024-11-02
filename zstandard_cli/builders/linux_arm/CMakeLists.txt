@@ -3,7 +3,7 @@
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
-project(zstandard_macos_library VERSION 0.0.1 LANGUAGES C)
+project(zstandard_linux_library VERSION 0.0.1 LANGUAGES C)
 
 file(GLOB ZSTD_SRC
         "../../src/common/*.c"
@@ -11,21 +11,23 @@ file(GLOB ZSTD_SRC
         "../../src/decompress/*.c"
 )
 
-add_library(zstandard_macos SHARED
+add_library(zstandard_linux SHARED
         # "Classes/plugin_code.cpp"
         ${ZSTD_SRC}
 )
 
-target_include_directories(zstandard_macos PUBLIC
+target_include_directories(zstandard_linux PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/common"
     "${CMAKE_CURRENT_SOURCE_DIR}/compress"
     "${CMAKE_CURRENT_SOURCE_DIR}/decompress"
 )
 
-set_target_properties(zstandard_macos PROPERTIES
-  PUBLIC_HEADER zstandard_macos.h
-  OUTPUT_NAME "zstandard_macos"
+set_target_properties(zstandard_linux PROPERTIES
+  PUBLIC_HEADER zstandard_linux.h
+  OUTPUT_NAME "zstandard_linux"
 )
 
-target_compile_definitions(zstandard_macos PUBLIC DART_SHARED_LIB)
+target_compile_definitions(zstandard_linux PUBLIC
+        DART_SHARED_LIB
+)
