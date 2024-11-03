@@ -178,7 +178,7 @@ jobs:
           move zstandard_windows.dll ../../../lib/src/bin/zstandard_windows_x64.dll
           cd ..
           cd ..
-          rm -rf build
+          rmdir /S /Q build
 
       - name: Compile arm64 Windows lib
         shell: cmd
@@ -191,7 +191,7 @@ jobs:
           move zstandard_windows.dll ../../../lib/src/bin/zstandard_windows_arm.dll
           cd ..
           cd ..
-          rm -rf build
+          rmdir /S /Q build
 
       - name: Verify Windows libs architecture
         shell: pwsh
