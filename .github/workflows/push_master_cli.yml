@@ -88,6 +88,11 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Install cross-compilation toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
       - name: Download source files from facebook/zstd
         run: |
           cd zstandard_cli
@@ -113,7 +118,7 @@ jobs:
         run: |
           cd zstandard_cli/builders/linux_arm
           mkdir build && cd build
-          cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 ..
+          cmake -DCMAKE_TOOLCHAIN_FILE=../arm64-toolchain.cmake ..
           cmake --build . --config Release
           mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_arm64.so
           cd ..
