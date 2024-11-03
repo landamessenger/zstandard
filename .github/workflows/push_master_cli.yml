@@ -194,7 +194,6 @@ jobs:
           rmdir /S /Q build
 
       - name: Verify Windows libs architecture
-        shell: pwsh
         run: |
           cd zstandard_cli/lib/src/bin
 
