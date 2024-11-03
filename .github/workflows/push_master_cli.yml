@@ -155,18 +155,17 @@ jobs:
         run: npm install -g @landamessenger/landa-messenger-api
 
       - name: Download source files from facebook/zstd
-        shell: powershell
+        shell: cmd
         run: |
           cd zstandard_cli
           git clone https://github.com/facebook/zstd.git
           mkdir src
-          Copy-Item -Path "zstd/lib/*" -Destination "src" -Recurse
-          Remove-Item -Recurse -Force zstd
+          xcopy zstd\lib src\ /E /I
+          rmdir /S /Q zstd
 
       - name: List files in zstd/lib to verify
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse zstandard_cli/src
+        shell: cmd
+        run: dir zstandard_cli\src /S
 
       - name: Compile x86_64 Windows lib
         run: |
