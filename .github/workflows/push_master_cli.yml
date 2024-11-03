@@ -175,7 +175,7 @@ jobs:
           cmake -G "Visual Studio 17 2022" -A x64 ..
           cmake --build . --config Release
           cd Release
-          move zstandard_windows.dll ../../../lib/src/bin/zstandard_windows_x64.dll
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_x64.dll
           cd ..
           cd ..
           rmdir /S /Q build
@@ -188,7 +188,7 @@ jobs:
           cmake -G "Visual Studio 17 2022" -A ARM64 ..
           cmake --build . --config Release
           cd Release
-          move zstandard_windows.dll ../../../lib/src/bin/zstandard_windows_arm.dll
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_arm.dll
           cd ..
           cd ..
           rmdir /S /Q build
