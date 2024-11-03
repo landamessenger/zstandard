@@ -155,7 +155,7 @@ jobs:
         run: npm install -g @landamessenger/landa-messenger-api
 
       - name: Download source files from facebook/zstd
-        shell: pwsh
+        shell: powershell
         run: |
           cd zstandard_cli
           git clone https://github.com/facebook/zstd.git
