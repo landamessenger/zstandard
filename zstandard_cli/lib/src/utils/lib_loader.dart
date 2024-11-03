@@ -5,16 +5,18 @@ import 'package:path/path.dart' as path;
 
 DynamicLibrary openZstdLibrary() {
   if (Platform.isWindows) {
-    final libPath =
-        path.join(Directory.current.path, 'lib', 'src', 'bin', 'zstandard_windows.dll');
+    final libPath = path.join(
+        Directory.current.path, 'lib', 'src', 'bin', 'zstandard_windows.dll');
     return DynamicLibrary.open(libPath);
   } else if (Platform.isMacOS) {
-    final libPath =
-        path.join(Directory.current.path, 'lib', 'src', 'bin', 'libzstandard_macos.dylib');
+    final libPath = path.join(Directory.current.path, 'lib', 'src', 'bin',
+        'libzstandard_macos.dylib');
     return DynamicLibrary.open(libPath);
   } else if (Platform.isLinux) {
-    final libPath =
-        path.join(Directory.current.path, 'lib', 'src', 'bin', 'libzstd.so');
+    final String arch =
+        Platform.operatingSystemVersion.contains("aarch64") ? "arm64" : "x64";
+    final libPath = path.join(Directory.current.path, 'lib', 'src', 'bin',
+        'libzstandard_linux_$arch.so');
     return DynamicLibrary.open(libPath);
   }
   throw UnsupportedError('Unsupported platform');
