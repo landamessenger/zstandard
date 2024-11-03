@@ -188,34 +188,36 @@ jobs:
           cmake -G "Visual Studio 17 2022" -A ARM64 ..
           cmake --build . --config Release
           cd Release
-          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_arm.dll
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_arm64.dll
           cd ..
           cd ..
           rmdir /S /Q build
 
+      - name: Install ffi-napi
+        run: npm install ffi-napi
+
       - name: Verify Windows libs architecture
         run: |
-          cd zstandard_cli/lib/src/bin
-
-          function Get-DllArchitecture($filePath) {
-            $bytes = [System.IO.File]::ReadAllBytes($filePath)[0..63]
-            $peHeaderOffset = [BitConverter]::ToInt32($bytes, 0x3C)
-            $machine = [BitConverter]::ToUInt16($bytes, $peHeaderOffset + 4)
-
-            switch ($machine) {
-              0x8664 { "x64" }
-              0xAA64 { "ARM64" }
-              0x014C { "x86" }
-              Default { "Unknown architecture" }
+          const ffi = require('ffi-napi');
+          const fs = require('fs');
+          
+          function checkArchitecture(filePath) {
+            try {
+              const buffer = fs.readFileSync(filePath);
+              const architecture = buffer.readUInt16LE(0x4); // PE offset for architecture
+              if (architecture === 0x8664) return 'x64';
+              if (architecture === 0xAA64) return 'ARM64';
+              if (architecture === 0x014C) return 'x86';
+              return 'Unknown architecture';
+            } catch (error) {
+              console.error(`Failed to check architecture for ${filePath}:`, error);
+              return null;
             }
           }
-
-          $x64Arch = Get-DllArchitecture "zstandard_windows_x64.dll"
-          $arm64Arch = Get-DllArchitecture "zstandard_windows_arm64.dll"
-
-          Write-Output "Architecture of zstandard_windows_x64.dll: $x64Arch"
-          Write-Output "Architecture of zstandard_windows_arm64.dll: $arm64Arch"
-      
+          
+          console.log("zstandard_windows_x64.dll architecture:", checkArchitecture("zstandard_cli/lib/src/bin/zstandard_windows_x64.dll"));
+          console.log("zstandard_windows_arm64.dll architecture:", checkArchitecture("zstandard_cli/lib/src/bin/zstandard_windows_arm64.dll"));
+        shell: node
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
