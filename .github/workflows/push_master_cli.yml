@@ -143,6 +143,10 @@ jobs:
     name: Windows precompiled libraries
     runs-on: [self-hosted, Windows]
     steps:
+      - name: Set PowerShell Execution Policy
+        shell: pwsh
+        run: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+
       - uses: actions/checkout@v4
 
       - name: Set up Node.js 18
