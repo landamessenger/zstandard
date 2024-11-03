@@ -168,6 +168,7 @@ jobs:
         run: dir zstandard_cli\src /S
 
       - name: Compile x86_64 Windows lib
+        shell: cmd
         run: |
           cd zstandard_cli/builders/windows_x64
           mkdir build && cd build
@@ -180,6 +181,7 @@ jobs:
           rm -rf build
 
       - name: Compile arm64 Windows lib
+        shell: cmd
         run: |
           cd zstandard_cli/builders/windows_arm
           mkdir build && cd build
