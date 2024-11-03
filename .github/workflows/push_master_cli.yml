@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-    # paths:
-      # - "zstandard_cli/**"
+    paths:
+      - "zstandard_cli/**"
 
 jobs:
   macos_precompiled_libs:
@@ -192,11 +192,6 @@ jobs:
           cd ..
           cd ..
           rmdir /S /Q build
-
-      - name: Set up Visual Studio environment
-        shell: cmd
-        run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" amd64
 
       - name: Verify Windows libs architecture
         shell: cmd
