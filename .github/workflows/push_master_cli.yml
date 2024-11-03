@@ -194,6 +194,7 @@ jobs:
           rmdir /S /Q build
 
       - name: Install ffi-napi
+        shell: cmd
         run: npm install ffi-napi
 
       - name: Verify Windows libs architecture
