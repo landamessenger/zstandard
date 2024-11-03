@@ -26,12 +26,12 @@ screenshots:
   - description: 'Windows compression sample'
     path: images/windows_compression_sample.png
   - description: 'Windows decompression sample'
-    path: images/windows_compression_sample.png
+    path: images/windows_decompression_sample.png
   - description: 'macOS compression sample'
     path: images/macos_compression_sample.png
   - description: 'macOS decompression sample'
-    path: images/macos_compression_sample.png
+    path: images/macos_decompression_sample.png
   - description: 'Linux compression sample'
     path: images/linux_compression_sample.png
   - description: 'Linux decompression sample'
-    path: images/linux_compression_sample.png
+    path: images/linux_decompression_sample.png
