@@ -137,4 +137,87 @@ jobs:
           committer_name: GitHub Actions
           committer_email: actions@github.com
           default_author: user_info
-          message: 'gh-action: Add precompiled macOS libraries for x86_64 and arm64'
+          message: 'gh-action: Add precompiled Linux libraries for x86_64 and arm64'
+
+  windows_precompiled_libs:
+    name: Windows precompiled libraries
+    runs-on: [self-hosted, Windows]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Download source files from facebook/zstd
+        run: |
+          cd zstandard_cli
+          git clone https://github.com/facebook/zstd.git
+          mkdir src
+          mv zstd/lib/* src/
+          rm -rf zstd/
+
+      - name: List files in zstd/lib to verify
+        run: cd zstandard_cli && ls -R src
+
+      - name: Compile x86_64 Windows lib
+        run: |
+          cd zstandard_cli/builders/windows_x64
+          mkdir build && cd build
+          cmake -G "Visual Studio 17 2022" -A x64 ..
+          cmake --build . --config Release
+          cd Release
+          move zstandard_windows.dll ../../../lib/src/bin/zstandard_windows_x64.dll
+          cd ..
+          cd ..
+          rm -rf build
+
+      - name: Compile arm64 Windows lib
+        run: |
+          cd zstandard_cli/builders/windows_arm
+          mkdir build && cd build
+          cmake -G "Visual Studio 17 2022" -A ARM64 ..
+          cmake --build . --config Release
+          cd Release
+          move zstandard_windows.dll ../../../lib/src/bin/zstandard_windows_arm.dll
+          cd ..
+          cd ..
+          rm -rf build
+
+      - name: Verify Windows libs architecture
+        shell: pwsh
+        run: |
+          cd zstandard_cli/lib/src/bin
+
+          function Get-DllArchitecture($filePath) {
+            $bytes = [System.IO.File]::ReadAllBytes($filePath)[0..63]
+            $peHeaderOffset = [BitConverter]::ToInt32($bytes, 0x3C)
+            $machine = [BitConverter]::ToUInt16($bytes, $peHeaderOffset + 4)
+
+            switch ($machine) {
+              0x8664 { "x64" }
+              0xAA64 { "ARM64" }
+              0x014C { "x86" }
+              Default { "Unknown architecture" }
+            }
+          }
+
+          $x64Arch = Get-DllArchitecture "zstandard_windows_x64.dll"
+          $arm64Arch = Get-DllArchitecture "zstandard_windows_arm64.dll"
+
+          Write-Output "Architecture of zstandard_windows_x64.dll: $x64Arch"
+          Write-Output "Architecture of zstandard_windows_arm64.dll: $arm64Arch"
+      
+
+      - name: Commit and Push Library
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled Windows libraries for x86_64 and arm64'
