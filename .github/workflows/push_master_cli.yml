@@ -150,11 +150,8 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Allow script execution
-        run: |
-          Set-ExecutionPolicy Bypass -Scope Process
-
       - name: Install Landa Messenger CLI
+        shell: cmd
         run: npm install -g @landamessenger/landa-messenger-api
 
       - name: Download source files from facebook/zstd
