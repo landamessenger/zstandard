@@ -151,18 +151,21 @@ jobs:
           node-version: '18.x'
 
       - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
+        run: npm install -g @landamessenger/landa-messenger-api
 
       - name: Download source files from facebook/zstd
+        shell: pwsh
         run: |
           cd zstandard_cli
           git clone https://github.com/facebook/zstd.git
           mkdir src
-          mv zstd/lib/* src/
-          rm -rf zstd/
+          Copy-Item -Path "zstd/lib/*" -Destination "src" -Recurse
+          Remove-Item -Recurse -Force zstd
 
       - name: List files in zstd/lib to verify
-        run: cd zstandard_cli && ls -R src
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse zstandard_cli/src
 
       - name: Compile x86_64 Windows lib
         run: |
