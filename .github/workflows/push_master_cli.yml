@@ -151,7 +151,6 @@ jobs:
           node-version: '18.x'
 
       - name: Install Landa Messenger CLI
-        shell: pwsh
         run: npm install -g @landamessenger/landa-messenger-api
 
       - name: Download source files from facebook/zstd
