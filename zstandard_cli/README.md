@@ -6,7 +6,9 @@ The CLI implementation of [`zstandard`](https://pub.dev/packages/zstandard).
 
 Zstandard (zstd) is a fast, high-compression algorithm developed by Meta (formerly Facebook) designed for real-time compression scenarios. It provides a flexible range of compression levels, allowing both high-speed and high-ratio compression, making it ideal for applications with diverse performance needs. Zstandard is commonly used in data storage, transmission, and backup solutions.
 
-`zstandard_cli` is a Dart package which provides bindings to the high-performance Zstandard compression library, enabling both in-code and command-line compression and decompression. It leverages FFI for direct access to native Zstandard functionality, allowing efficient data processing in Dart applications, from compressing data in memory to handling files through the CLI. **Only available on macOS, Windows, and Linux desktops**.
+`zstandard_cli` is a Dart package which provides bindings to the high-performance Zstandard compression library, enabling both in-code and command-line compression and decompression. It leverages FFI for direct access to native Zstandard functionality, allowing efficient data processing in Dart applications, from compressing data in memory to handling files through the CLI.
+
+**Only available on macOS, Windows, and Linux desktops**.
 
 ## Basic Usage
 
@@ -43,9 +45,9 @@ dart run zstandard_cli:decompress any_file.zstd
 ```
 
 
-<p align="center"><img width="70%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/macos_compression_sample.png"></p>
-<p align="center"><img width="70%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/macos_decompression_sample.png"></p>
-<p align="center"><img width="70%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/windows_compression_sample.png"></p>
-<p align="center"><img width="70%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/windows_decompression_sample.png"></p>
-<p align="center"><img width="70%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/linux_compression_sample.png"></p>
-<p align="center"><img width="70%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/linux_decompression_sample.png"></p>
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/macos_compression_sample.png"></p>
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/macos_decompression_sample.png"></p>
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/windows_compression_sample.png"></p>
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/windows_decompression_sample.png"></p>
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/linux_compression_sample.png"></p>
+<p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/linux_decompression_sample.png"></p>
