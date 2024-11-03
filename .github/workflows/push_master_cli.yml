@@ -193,32 +193,14 @@ jobs:
           cd ..
           rmdir /S /Q build
 
-      - name: Install ffi-napi
-        shell: cmd
-        run: npm install ffi-napi
+      - name: Set up Visual Studio environment
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" amd64
 
       - name: Verify Windows libs architecture
         run: |
-          const ffi = require('ffi-napi');
-          const fs = require('fs');
-          
-          function checkArchitecture(filePath) {
-            try {
-              const buffer = fs.readFileSync(filePath);
-              const architecture = buffer.readUInt16LE(0x4); // PE offset for architecture
-              if (architecture === 0x8664) return 'x64';
-              if (architecture === 0xAA64) return 'ARM64';
-              if (architecture === 0x014C) return 'x86';
-              return 'Unknown architecture';
-            } catch (error) {
-              console.error(`Failed to check architecture for ${filePath}:`, error);
-              return null;
-            }
-          }
-          
-          console.log("zstandard_windows_x64.dll architecture:", checkArchitecture("zstandard_cli/lib/src/bin/zstandard_windows_x64.dll"));
-          console.log("zstandard_windows_arm64.dll architecture:", checkArchitecture("zstandard_cli/lib/src/bin/zstandard_windows_arm64.dll"));
-        shell: node
+          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_x64.dll | findstr /c:"machine"
+          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_arm64.dll | findstr /c:"machine"
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
