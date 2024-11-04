@@ -1,0 +1,4 @@
+zstandard_cli/zstd/
+.idea/
+*/.idea/
+*/coverage/
