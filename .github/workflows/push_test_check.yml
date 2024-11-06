@@ -10,6 +10,7 @@ jobs:
   push_test_check:
     name: Test actions
     runs-on: [self-hosted, macOS]
+
     steps:
       - name: Setup local files
         uses: landamessenger/zstandard/.github/local_file_setup
