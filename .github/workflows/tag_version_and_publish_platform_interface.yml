@@ -51,10 +51,7 @@ jobs:
         id: pr_info
         uses: octokit/request-action@v2.4.0
         with:
-          route: GET /repos/${{ github.repository }}/pulls
-          query: |
-            per_page=1
-            state=closed
+          route: GET /repos/${{ github.repository }}/pulls?state=closed&sort=updated&direction=desc&per_page=1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
