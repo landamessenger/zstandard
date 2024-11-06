@@ -12,62 +12,135 @@ runs:
 
     - name: Install Landa Messenger CLI
       run: npm install @landamessenger/landa-messenger-api -g
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
 
     - name: Read version from pubspec.yml
       working-directory: zstandard_platform_interface
       id: read_version
       run: |
-        VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "tokens=2 delims= " %%A in ('findstr "^version: " pubspec.yaml') do @set VERSION=%%A
+          echo VERSION=%VERSION% >> $env:GITHUB_ENV
+        else
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
 
     - name: Copy CHANGELOG.md
       run: |
-        cp CHANGELOG.md "zstandard_platform_interface/CHANGELOG.md"
-        cp CHANGELOG.md "zstandard_android/CHANGELOG.md"
-        cp CHANGELOG.md "zstandard_ios/CHANGELOG.md"
-        cp CHANGELOG.md "zstandard_macos/CHANGELOG.md"
-        cp CHANGELOG.md "zstandard_windows/CHANGELOG.md"
-        cp CHANGELOG.md "zstandard_linux/CHANGELOG.md"
-        cp CHANGELOG.md "zstandard_web/CHANGELOG.md"
-        cp CHANGELOG.md "zstandard_cli/CHANGELOG.md"
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          copy CHANGELOG.md zstandard_platform_interface\CHANGELOG.md
+          copy CHANGELOG.md zstandard_android\CHANGELOG.md
+          copy CHANGELOG.md zstandard_ios\CHANGELOG.md
+          copy CHANGELOG.md zstandard_macos\CHANGELOG.md
+          copy CHANGELOG.md zstandard_windows\CHANGELOG.md
+          copy CHANGELOG.md zstandard_linux\CHANGELOG.md
+          copy CHANGELOG.md zstandard_web\CHANGELOG.md
+          copy CHANGELOG.md zstandard_cli\CHANGELOG.md
+        else
+          cp CHANGELOG.md zstandard_platform_interface/CHANGELOG.md
+          cp CHANGELOG.md zstandard_android/CHANGELOG.md
+          cp CHANGELOG.md zstandard_ios/CHANGELOG.md
+          cp CHANGELOG.md zstandard_macos/CHANGELOG.md
+          cp CHANGELOG.md zstandard_windows/CHANGELOG.md
+          cp CHANGELOG.md zstandard_linux/CHANGELOG.md
+          cp CHANGELOG.md zstandard_web/CHANGELOG.md
+          cp CHANGELOG.md zstandard_cli/CHANGELOG.md
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
 
+    - name: Update version in zstandard pubspec.yaml
+      working-directory: zstandard
+      run: |
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
+          echo version: %VERSION% >> pubspec_temp.yaml
+          del pubspec.yaml
+          ren pubspec_temp.yaml pubspec.yaml
+        else
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
     - name: Update version in zstandard_android pubspec.yaml
       working-directory: zstandard_android
       run: |
-        sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-        sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
+          echo version: %VERSION% >> pubspec_temp.yaml
+          del pubspec.yaml
+          ren pubspec_temp.yaml pubspec.yaml
+        else
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
     - name: Update version in zstandard_ios pubspec.yaml
       working-directory: zstandard_ios
       run: |
-        sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-        sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
+          echo version: %VERSION% >> pubspec_temp.yaml
+          del pubspec.yaml
+          ren pubspec_temp.yaml pubspec.yaml
+        else
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
     - name: Update version in zstandard_macos pubspec.yaml
       working-directory: zstandard_macos
       run: |
-        sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-        sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
-    - name: Update version in zstandard_linux pubspec.yaml
-      working-directory: zstandard_linux
-      run: |
-        sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-        sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
+          echo version: %VERSION% >> pubspec_temp.yaml
+          del pubspec.yaml
+          ren pubspec_temp.yaml pubspec.yaml
+        else
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
     - name: Update version in zstandard_windows pubspec.yaml
       working-directory: zstandard_windows
       run: |
-        sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-        sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
+          echo version: %VERSION% >> pubspec_temp.yaml
+          del pubspec.yaml
+          ren pubspec_temp.yaml pubspec.yaml
+        else
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
+    - name: Update version in zstandard_linux pubspec.yaml
+      working-directory: zstandard_linux
+      run: |
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
+          echo version: %VERSION% >> pubspec_temp.yaml
+          del pubspec.yaml
+          ren pubspec_temp.yaml pubspec.yaml
+        else
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
     - name: Update version in zstandard_web pubspec.yaml
       working-directory: zstandard_web
       run: |
-        sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-        sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
+          echo version: %VERSION% >> pubspec_temp.yaml
+          del pubspec.yaml
+          ren pubspec_temp.yaml pubspec.yaml
+        else
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
     - name: Update version in zstandard_cli pubspec.yaml
       working-directory: zstandard_cli
       run: |
-        sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
+          echo version: %VERSION% >> pubspec_temp.yaml
+          del pubspec.yaml
+          ren pubspec_temp.yaml pubspec.yaml
+        else
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
