@@ -182,6 +182,9 @@ jobs:
                --background_color "#FFFFFFFF" \
               --text_color "#DD000000"
 
+      - name: Wait a minute
+        run: sleep 60
+
       - name: Handle job completion
         if: always()
         run: |
