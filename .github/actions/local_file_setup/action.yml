@@ -171,5 +171,3 @@ runs:
         propertyPath: 'version'
         value: '${{ steps.version_data.outputs.data }}'
         commitChange: false
-
-
