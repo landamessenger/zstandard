@@ -13,4 +13,4 @@ jobs:
 
     steps:
       - name: Setup local files
-        uses: landamessenger/zstandard/.github/local_file_setup
+        uses: ./.github/actions/local_file_setup/
