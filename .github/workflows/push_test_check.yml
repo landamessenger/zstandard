@@ -12,5 +12,7 @@ jobs:
     runs-on: [self-hosted, macOS]
 
     steps:
+      - name: pwd
+        run: pwd
       - name: Setup local files
-        uses: ../.github/actions/local_file_setup/
+        uses: ./.github/actions/local_file_setup/
