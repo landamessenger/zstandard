@@ -10,7 +10,7 @@ on:
 jobs:
   tag_version:
     if: github.event.pull_request.merged == true
-    name: Tag and publish all platforms
+    name: Tag and prepare files
     runs-on: [self-hosted, macOS]
     steps:
       - uses: actions/checkout@v4
@@ -148,47 +148,6 @@ jobs:
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Creation Tag Passed" \
               --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
-              --url "https://github.com/landamessenger/object/actions/workflows/tag_version_and_publish.yml" \
-              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
-              --background_color "#55000000" \
-              --text_color "#FFFFFFFF"
-          fi
-
-      - run: flutter pub get
-
-      - run: dart pub publish --dry-run
-
-      - run: dart pub publish -f
-
-      - name: Handle publish job completion
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "failure" ]; then
-            landa-messenger-api chat-send \
-              --id "${{ secrets.CHAT_ID }}" \
-              --api_key "${{ secrets.CHAT_KEY }}" \
-              --title "🔴 Pub Publish Failed" \
-              --body "${{ github.repository }}: ${{ github.event.head_commit.message }}" \
-              --url "https://github.com/landamessenger/object/actions/workflows/tag_version_and_publish.yml" \
-              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
-              --background_color "#55000000" \
-              --text_color "#FFFFFFFF"
-          elif [ "${{ job.status }}" == "cancelled" ]; then
-            landa-messenger-api chat-send \
-              --id "${{ secrets.CHAT_ID }}" \
-              --api_key "${{ secrets.CHAT_KEY }}" \
-              --title "🟠 Pub Publish Canceled" \
-              --body "${{ github.repository }}: ${{ github.event.head_commit.message }}" \
-              --url "https://github.com/landamessenger/object/actions/workflows/tag_version_and_publish.yml" \
-              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
-              --background_color "#55000000" \
-              --text_color "#FFFFFFFF"
-          else
-            landa-messenger-api chat-send \
-              --id "${{ secrets.CHAT_ID }}" \
-              --api_key "${{ secrets.CHAT_KEY }}" \
-              --title "🟢 Pub Publish Passed" \
-              --body "${{ github.repository }}: ${{ github.event.head_commit.message }}" \
               --url "https://github.com/landamessenger/object/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
