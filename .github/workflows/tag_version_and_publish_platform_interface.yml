@@ -487,7 +487,8 @@ jobs:
           node-version: '18.x'
 
       - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
+        shell: cmd
+        run: npm install -g @landamessenger/landa-messenger-api
 
       - uses: subosito/flutter-action@v1
         with:
