@@ -14,17 +14,15 @@ runs:
       run: npm install @landamessenger/landa-messenger-api -g
       shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
 
-    - name: Read version from pubspec.yml
-      working-directory: zstandard_platform_interface
-      id: read_version
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "tokens=2 delims= " %%A in ('findstr "^version: " pubspec.yaml') do @set VERSION=%%A
-          echo VERSION=%VERSION% >> $env:GITHUB_ENV
-        else
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
+    - name: Run read-yaml action
+      id: version_data
+      uses: jbutcher5/read-yaml@main
+      with:
+        file: './zstandard_platform_interface/pubspec.yaml'
+        key-path: '["version"]'
+
+    - name: Display read-yaml output
+      run: echo "${{ steps.version_data.outputs.data }}"
 
     - name: Copy CHANGELOG.md
       run: |
@@ -48,100 +46,130 @@ runs:
           cp CHANGELOG.md zstandard_cli/CHANGELOG.md
       shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
 
-    - name: Update version in zstandard pubspec.yaml
-      working-directory: zstandard
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
-          echo version: %VERSION% >> pubspec_temp.yaml
-          del pubspec.yaml
-          ren pubspec_temp.yaml pubspec.yaml
-        else
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
-    - name: Update version in zstandard_android pubspec.yaml
-      working-directory: zstandard_android
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
-          echo version: %VERSION% >> pubspec_temp.yaml
-          del pubspec.yaml
-          ren pubspec_temp.yaml pubspec.yaml
-        else
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
-    - name: Update version in zstandard_ios pubspec.yaml
-      working-directory: zstandard_ios
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
-          echo version: %VERSION% >> pubspec_temp.yaml
-          del pubspec.yaml
-          ren pubspec_temp.yaml pubspec.yaml
-        else
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
-    - name: Update version in zstandard_macos pubspec.yaml
-      working-directory: zstandard_macos
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
-          echo version: %VERSION% >> pubspec_temp.yaml
-          del pubspec.yaml
-          ren pubspec_temp.yaml pubspec.yaml
-        else
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
-    - name: Update version in zstandard_windows pubspec.yaml
-      working-directory: zstandard_windows
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
-          echo version: %VERSION% >> pubspec_temp.yaml
-          del pubspec.yaml
-          ren pubspec_temp.yaml pubspec.yaml
-        else
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
-    - name: Update version in zstandard_linux pubspec.yaml
-      working-directory: zstandard_linux
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
-          echo version: %VERSION% >> pubspec_temp.yaml
-          del pubspec.yaml
-          ren pubspec_temp.yaml pubspec.yaml
-        else
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
-    - name: Update version in zstandard_web pubspec.yaml
-      working-directory: zstandard_web
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
-          echo version: %VERSION% >> pubspec_temp.yaml
-          del pubspec.yaml
-          ren pubspec_temp.yaml pubspec.yaml
-        else
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
-    - name: Update version in zstandard_cli pubspec.yaml
-      working-directory: zstandard_cli
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          for /f "delims=" %%i in ('type pubspec.yaml ^| findstr /v "version:"') do @echo %%i >> pubspec_temp.yaml
-          echo version: %VERSION% >> pubspec_temp.yaml
-          del pubspec.yaml
-          ren pubspec_temp.yaml pubspec.yaml
-        else
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
+    # zstandard
+    - name: Update zstandard/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard/pubspec.yaml'
+        propertyPath: 'version'
+        value: '${{ steps.version_data.outputs.data }}'
+        commitChange: false
+    - name: Update zstandard/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard/pubspec.yaml'
+        propertyPath: 'dependencies.zstandard_platform_interface'
+        value: '^${{ steps.version_data.outputs.data }}'
+        commitChange: false
+
+
+    # zstandard_android
+    - name: Update zstandard_android/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_android/pubspec.yaml'
+        propertyPath: 'version'
+        value: '${{ steps.version_data.outputs.data }}'
+        commitChange: false
+    - name: Update zstandard_android/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_android/pubspec.yaml'
+        propertyPath: 'dependencies.zstandard_platform_interface'
+        value: '^${{ steps.version_data.outputs.data }}'
+        commitChange: false
+
+
+    # zstandard_ios
+    - name: Update zstandard_ios/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_ios/pubspec.yaml'
+        propertyPath: 'version'
+        value: '${{ steps.version_data.outputs.data }}'
+        commitChange: false
+    - name: Update zstandard_ios/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_ios/pubspec.yaml'
+        propertyPath: 'dependencies.zstandard_platform_interface'
+        value: '^${{ steps.version_data.outputs.data }}'
+        commitChange: false
+
+
+    # zstandard_macos
+    - name: Update zstandard_macos/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_macos/pubspec.yaml'
+        propertyPath: 'version'
+        value: '${{ steps.version_data.outputs.data }}'
+        commitChange: false
+    - name: Update zstandard_macos/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_macos/pubspec.yaml'
+        propertyPath: 'dependencies.zstandard_platform_interface'
+        value: '^${{ steps.version_data.outputs.data }}'
+        commitChange: false
+
+    # zstandard_linux
+    - name: Update zstandard_linux/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_linux/pubspec.yaml'
+        propertyPath: 'version'
+        value: '${{ steps.version_data.outputs.data }}'
+        commitChange: false
+    - name: Update zstandard_linux/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_linux/pubspec.yaml'
+        propertyPath: 'dependencies.zstandard_platform_interface'
+        value: '^${{ steps.version_data.outputs.data }}'
+        commitChange: false
+
+
+    # zstandard_windows
+    - name: Update zstandard_windows/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_windows/pubspec.yaml'
+        propertyPath: 'version'
+        value: '${{ steps.version_data.outputs.data }}'
+        commitChange: false
+    - name: Update zstandard_windows/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_windows/pubspec.yaml'
+        propertyPath: 'dependencies.zstandard_platform_interface'
+        value: '^${{ steps.version_data.outputs.data }}'
+        commitChange: false
+
+
+    # zstandard_web
+    - name: Update zstandard_web/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_web/pubspec.yaml'
+        propertyPath: 'version'
+        value: '${{ steps.version_data.outputs.data }}'
+        commitChange: false
+    - name: Update zstandard_web/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_web/pubspec.yaml'
+        propertyPath: 'dependencies.zstandard_platform_interface'
+        value: '^${{ steps.version_data.outputs.data }}'
+        commitChange: false
+
+    # zstandard_cli
+    - name: Update zstandard_cli/pubspec.yaml
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'zstandard_cli/pubspec.yaml'
+        propertyPath: 'version'
+        value: '${{ steps.version_data.outputs.data }}'
+        commitChange: false
+
 
