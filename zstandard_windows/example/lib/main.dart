@@ -104,7 +104,7 @@ class _MyAppState extends State<MyApp> {
 
     try {
       compressed = await _originalData.compress();
-      decompressed = await compressed.decompress(compressed);
+      decompressed = await compressed.decompress();
     } catch (e) {
       if (kDebugMode) {
         print(e);
