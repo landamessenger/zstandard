@@ -9,6 +9,8 @@ import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
 
 import 'zstandard_android_bindings_generated.dart';
 
+export 'zstandard_ext.dart';
+
 const String _libName = 'zstandard_android';
 
 final DynamicLibrary _dylib = () {
@@ -39,10 +41,7 @@ class ZstandardAndroid extends ZstandardPlatform {
   }
 
   @override
-  Future<Uint8List?> compress(
-    Uint8List data, {
-    int compressionLevel = 3,
-  }) async {
+  Future<Uint8List?> compress(Uint8List data, int compressionLevel) async {
     final int srcSize = data.lengthInBytes;
     final Pointer<Uint8> src = malloc.allocate<Uint8>(srcSize);
     src.asTypedList(srcSize).setAll(0, data);
