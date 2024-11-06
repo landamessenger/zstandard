@@ -38,14 +38,14 @@ void main() {
 
     test('compress returns the same data if length is less than 9 bytes', () async {
       final data = Uint8List.fromList([1, 2, 3, 4, 5]);
-      final result = await zstandardWeb.compress(data);
+      final result = await zstandardWeb.compress(data, 3);
       expect(result, data);
     });
 
     test('compress with zstd.js returns compressed data for valid input', () async {
       final data = Uint8List.fromList(List.generate(10, (index) => index));
 
-      final compressed = await zstandardWeb.compress(data);
+      final compressed = await zstandardWeb.compress(data, 4);
       final decompressed = await zstandardWeb.decompress(compressed ?? Uint8List(0));
       expect(compressed, isNotNull);
       expect(decompressed, isNotNull);
@@ -60,7 +60,7 @@ void main() {
       // Simula un fallo en compresión
       js.context['compressData'] = (Uint8List data) => null;
 
-      expect(() async => await zstandardWeb.compress(data), throwsException);
+      expect(() async => await zstandardWeb.compress(data, 5), throwsException);
     });
 
     test('decompress returns the same data if length is less than 9 bytes', () async {

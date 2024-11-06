@@ -67,25 +67,26 @@ emcc -O3 \
     $(find lib/common -name "*.c") \
     -s WASM=1 \
     -s EXPORT_NAME="zstdWasmModule" \
-    -s EXPORTED_FUNCTIONS="['_ZSTD_compress', '_ZSTD_decompress', '_malloc', '_free', '_ZSTD_getFrameContentSize']" \
+    -s EXPORTED_FUNCTIONS="['_ZSTD_compress', '_ZSTD_decompress', '_malloc', '_free', '_ZSTD_getFrameContentSize', '_ZSTD_compressBound']" \
     -o zstd.js
 ```
 
 Include `compressData` and `decompressData` methods in `zstd.js`:
 
 ```js
-function compressData(inputData) {
+function compressData(inputData, compressionLevel) {
     let inputPtr = Module._malloc(inputData.length);
     Module.HEAPU8.set(inputData, inputPtr);
 
-    let outputBufferSize = inputData.length * 2;
+    let outputBufferSize = Module._ZSTD_compressBound(inputData.length);
     let outputPtr = Module._malloc(outputBufferSize);
 
     let compressedSize = Module._ZSTD_compress(
         outputPtr,
         outputBufferSize,
         inputPtr,
-        inputData.length
+        inputData.length,
+        compressionLevel
     );
 
     if (compressedSize < 0) {
