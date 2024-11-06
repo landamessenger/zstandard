@@ -168,6 +168,11 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Copy CHANGELOG.md
+        working-directory: zstandard_platform_interface
+        run: |
+          cp "../CHANGELOG.md" CHANGELOG.md
+
       - name: Get dependencies
         working-directory: zstandard_platform_interface
         run: flutter pub get
@@ -265,6 +270,11 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Copy CHANGELOG.md
+        working-directory: zstandard_android
+        run: |
+          cp "../CHANGELOG.md" CHANGELOG.md
+
       - name: Get dependencies
         working-directory: zstandard_android
         run: flutter pub get
@@ -344,6 +354,11 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Copy CHANGELOG.md
+        working-directory: zstandard_ios
+        run: |
+          cp "../CHANGELOG.md" CHANGELOG.md
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -425,6 +440,11 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Copy CHANGELOG.md
+        working-directory: zstandard_macos
+        run: |
+          cp "../CHANGELOG.md" CHANGELOG.md
+
       - name: Get dependencies
         working-directory: zstandard_macos
         run: flutter pub get
@@ -504,6 +524,11 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Copy CHANGELOG.md
+        working-directory: zstandard_windows
+        run: |
+          cp "../CHANGELOG.md" CHANGELOG.md
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -585,6 +610,11 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Copy CHANGELOG.md
+        working-directory: zstandard_linux
+        run: |
+          cp "../CHANGELOG.md" CHANGELOG.md
+
       - name: Get dependencies
         working-directory: zstandard_linux
         run: flutter pub get
@@ -664,6 +694,11 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Copy CHANGELOG.md
+        working-directory: zstandard_web
+        run: |
+          cp "../CHANGELOG.md" CHANGELOG.md
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -745,17 +780,22 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Copy CHANGELOG.md
+        working-directory: zstandard_cli
+        run: |
+          cp "../CHANGELOG.md" CHANGELOG.md
+
       - name: Get dependencies
         working-directory: zstandard_cli
-        run: flutter pub get
+        run: dart pub get
 
       - name: Analyze check
         working-directory: zstandard_cli
-        run: flutter analyze
+        run: dart analyze
 
       - name: Test check
         working-directory: zstandard_cli
-        run: flutter test
+        run: dart test
 
       - name: Publish Dry Run
         working-directory: zstandard_web
