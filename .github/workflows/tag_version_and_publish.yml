@@ -1376,8 +1376,8 @@ jobs:
         run: dart pub publish -f
 
       - name: Compress folder
-        shell: powershell
-        run: Compress-Archive -Path ./zstandard_windows -DestinationPath ./zstandard_windows.zip
+        shell: cmd
+        run: tar -a -c -f zstandard_windows.zip zstandard_windows
 
       - name: Upload asset to release
         uses: softprops/action-gh-release@v2
@@ -1744,7 +1744,7 @@ jobs:
               --text_color "#FFFFFFFF"
           fi
   web_test:
-    name: Analyze Web
+    name: Test Web
     runs-on: [self-hosted, macOS]
     needs: web_analyze
     steps:
@@ -2204,7 +2204,7 @@ jobs:
           fi
 
   zstandard_analyze:
-    name: Analyze CLI
+    name: Analyze Zstandard
     runs-on: [self-hosted, macOS]
     needs: [platform_interface_publish, android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
@@ -2266,7 +2266,7 @@ jobs:
               --text_color "#FFFFFFFF"
           fi
   zstandard_test:
-    name: Test CLI
+    name: Test Zstandard
     runs-on: [self-hosted, macOS]
     needs: zstandard_analyze
     steps:
@@ -2328,7 +2328,7 @@ jobs:
               --text_color "#FFFFFFFF"
           fi
   zstandard_publish_dry_run:
-    name: Dry Run Publish CLI
+    name: Dry Run Publish Zstandard
     runs-on: [self-hosted, macOS]
     needs: zstandard_test
     steps:
@@ -2390,7 +2390,7 @@ jobs:
               --text_color "#FFFFFFFF"
           fi
   zstandard_publish:
-    name: Publish CLI
+    name: Publish Zstandard
     runs-on: [self-hosted, macOS]
     needs: zstandard_publish_dry_run
     steps:
