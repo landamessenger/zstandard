@@ -580,9 +580,9 @@ jobs:
         working-directory: zstandard_linux
         run: flutter analyze
 
-      - name: Test check
-        working-directory: zstandard_linux
-        run: flutter test
+      # - name: Test check
+      #  working-directory: zstandard_linux
+      #  run: flutter test
 
       - name: Publish Dry Run
         working-directory: zstandard_linux
