@@ -13,6 +13,7 @@ jobs:
 
     steps:
       - name: pwd
+        shell: bash
         run: pwd
       - name: Setup local files
         uses: ./.github/actions/local_file_setup/
