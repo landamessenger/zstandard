@@ -15,5 +15,8 @@ jobs:
       - name: pwd
         shell: bash
         run: pwd
+      - name: ls -a
+        shell: bash
+        run: ls -a
       - name: Setup local files
         uses: ./.github/actions/local_file_setup/
