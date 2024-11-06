@@ -6,6 +6,8 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart' show Registrar;
 import 'package:web/web.dart' as html;
 import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
 
+export 'zstandard_ext.dart';
+
 /// The web implementation of [ZstandardPlatform].
 ///
 /// This class implements the `package:zstandard` functionality for the web.
@@ -25,9 +27,9 @@ class ZstandardWeb extends ZstandardPlatform {
   }
 
   @override
-  Future<Uint8List?> compress(Uint8List data) async {
+  Future<Uint8List?> compress(Uint8List data, int compressionLevel) async {
     if (data.length < 9) return data;
-    var compressedData = js.context.callMethod('compressData', [data]);
+    var compressedData = js.context.callMethod('compressData', [data, compressionLevel]);
     if (compressedData != null) {
       return Uint8List.fromList(List<int>.from(compressedData));
     } else {
