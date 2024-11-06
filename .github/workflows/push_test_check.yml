@@ -11,6 +11,7 @@ jobs:
     name: Test actions
     runs-on: [self-hosted, macOS]
 
+
     steps:
       - name: Setup local files
         uses: ./.github/actions/local_file_setup/
