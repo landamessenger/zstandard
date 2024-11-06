@@ -11,7 +11,6 @@ runs:
         node-version: '18.x'
 
     - name: Install Landa Messenger CLI
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
       run: npm install @landamessenger/landa-messenger-api -g
 
     - name: Run read-yaml action
