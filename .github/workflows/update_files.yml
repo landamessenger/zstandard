@@ -92,6 +92,18 @@ jobs:
           sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
           sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
 
+      - name: Update version in zstandard pubspec.yaml
+        working-directory: zstandard
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_android: .*/  zstandard_android: ^${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_ios: .*/  zstandard_ios: ^${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_web: .*/  zstandard_web: ^${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_macos: .*/  zstandard_macos: ^${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_windows: .*/  zstandard_windows: ^${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_linux: .*/  zstandard_linux: ^${{ env.VERSION }}/" pubspec.yaml
+
       - name: Update version in zstandard_cli pubspec.yaml
         working-directory: zstandard_cli
         run: |
