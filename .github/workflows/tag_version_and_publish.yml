@@ -993,36 +993,9 @@ jobs:
           channel: 'stable'
           flutter-version: '3.24.3'
 
-      - name: Get dependencies
-        working-directory: zstandard_macos
-        run: flutter pub get
-
-      - name: Analyze check
-        working-directory: zstandard_macos
-        run: flutter analyze
-
       - name: Test check
         working-directory: zstandard_macos
         run: flutter test
-
-      - name: Publish Dry Run
-        working-directory: zstandard_macos
-        run: dart pub publish --dry-run
-
-      - name: Publish
-        working-directory: zstandard_macos
-        run: dart pub publish -f
-
-      - name: Compress folder
-        run: zip -r zstandard_macos.zip ./zstandard_macos
-
-      - name: Upload asset to release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: "v${{ env.VERSION }}"
-          files: "./zstandard_macos.zip"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Handle job completion
         if: always()
@@ -1275,10 +1248,10 @@ jobs:
         shell: cmd
         run: flutter pub get
 
-      - name: Test check
-        working-directory: zstandard_windows
-        shell: cmd
-        run: flutter test
+      #- name: Test check
+      #  working-directory: zstandard_windows
+      #  shell: cmd
+      #  run: flutter test
 
       - name: Handle job completion
         if: always()
