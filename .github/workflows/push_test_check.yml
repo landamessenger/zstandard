@@ -1,4 +1,4 @@
-name: Push Test Check Android
+name: Push Test Check Composite
 
 on:
   push:
@@ -10,6 +10,19 @@ jobs:
   push_test_check:
     name: Test actions
     runs-on: [self-hosted, macOS]
+
     steps:
+      - name: pwd
+        shell: bash
+        run: pwd
+
+      - name: ls -a
+        shell: bash
+        run: ls -a
+
+      - name: ls -a B
+        shell: bash
+        run: cd ./.github/actions/local_file_setup/ && ls -a
+
       - name: Setup local files
-        uses: landamessenger/zstandard/.github/local_file_setup
+        uses: ./.github/actions/local_file_setup/
