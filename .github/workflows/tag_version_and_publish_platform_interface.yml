@@ -14,7 +14,7 @@ jobs:
     runs-on: [self-hosted, macOS]
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Commit and Push version updates
         uses: EndBug/add-and-commit@v9
@@ -93,7 +93,7 @@ jobs:
     needs: tag_version
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -183,7 +183,7 @@ jobs:
     needs: platform_interface
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -256,7 +256,7 @@ jobs:
     needs: platform_interface
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -329,7 +329,7 @@ jobs:
     needs: platform_interface
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_macos
@@ -402,7 +402,7 @@ jobs:
     needs: platform_interface
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -475,7 +475,7 @@ jobs:
     needs: platform_interface
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -548,7 +548,7 @@ jobs:
     needs: platform_interface
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -621,7 +621,7 @@ jobs:
     needs: platform_interface
     steps:
       - name: Setup local files
-        uses: ../.github/actions/local_files_setup
+        uses: ../.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_cli
