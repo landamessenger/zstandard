@@ -12,7 +12,7 @@ class MockZstandardPlatformInterfacePlatform
   Future<String?> getPlatformVersion() => Future.value('42');
 
   @override
-  Future<Uint8List?> compress(Uint8List data) async {
+  Future<Uint8List?> compress(Uint8List data, int compressionLevel) async {
     return null;
   }
 

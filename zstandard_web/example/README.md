@@ -2,15 +2,26 @@
 
 Demonstrates how to use the zstandard_platform_web plugin.
 
-## Getting Started
+Also, this is a test app for manual testing and automated integration testing
+of this platform implementation.
 
-This project is a starting point for a Flutter application.
+## Testing
 
-A few resources to get you started if this is your first Flutter project:
+This package uses `package:integration_test` to run its tests in a web browser.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+See [Plugin Tests > Web Tests](https://github.com/flutter/flutter/blob/master/docs/ecosystem/testing/Plugin-Tests.md#web-tests)
+in the Flutter documentation for instructions to set up and run the tests in this package.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Check [flutter.dev > Integration testing](https://docs.flutter.dev/testing/integration-tests)
+for more info.
+
+```bash
+chromedriver --port=4444
+```
+
+```bash
+flutter drive \
+    --driver=test_driver/integration_test.dart \
+    --target=integration_test/zstandard_web_integration_test.dart \
+    -d chrome
+```

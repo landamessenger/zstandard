@@ -33,15 +33,16 @@ class ZstandardAndroid extends ZstandardPlatform {
 
   @override
   Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    final version =
+        await methodChannel.invokeMethod<String>('getPlatformVersion');
     return version;
   }
 
   @override
   Future<Uint8List?> compress(
-      Uint8List data, {
-        int compressionLevel = 3,
-      }) async {
+    Uint8List data, {
+    int compressionLevel = 3,
+  }) async {
     final int srcSize = data.lengthInBytes;
     final Pointer<Uint8> src = malloc.allocate<Uint8>(srcSize);
     src.asTypedList(srcSize).setAll(0, data);
@@ -75,7 +76,11 @@ class ZstandardAndroid extends ZstandardPlatform {
     final Pointer<Uint8> src = malloc.allocate<Uint8>(compressedSize);
     src.asTypedList(compressedSize).setAll(0, data);
 
-    final int dstCapacity = compressedSize * 4;
+    final int decompressedSizeExpected =
+        _bindings.ZSTD_getDecompressedSize(src.cast(), compressedSize);
+    final int dstCapacity = decompressedSizeExpected > 0
+        ? decompressedSizeExpected
+        : compressedSize * 20;
     final Pointer<Uint8> dst = malloc.allocate<Uint8>(dstCapacity);
 
     try {
@@ -99,12 +104,12 @@ class ZstandardAndroid extends ZstandardPlatform {
 }
 
 int compress(
-    Pointer<Void> dst,
-    int dstCapacity,
-    Pointer<Void> src,
-    int srcSize,
-    int compressionLevel,
-    ) =>
+  Pointer<Void> dst,
+  int dstCapacity,
+  Pointer<Void> src,
+  int srcSize,
+  int compressionLevel,
+) =>
     _bindings.ZSTD_compress(
       dst,
       dstCapacity,
@@ -114,11 +119,11 @@ int compress(
     );
 
 int decompress(
-    Pointer<Void> dst,
-    int dstCapacity,
-    Pointer<Void> src,
-    int compressedSize,
-    ) =>
+  Pointer<Void> dst,
+  int dstCapacity,
+  Pointer<Void> src,
+  int compressedSize,
+) =>
     _bindings.ZSTD_decompress(
       dst,
       dstCapacity,
@@ -127,12 +132,12 @@ int decompress(
     );
 
 Future<int> compressAsync(
-    Pointer<Void> dst,
-    int dstCapacity,
-    Pointer<Void> src,
-    int srcSize,
-    int compressionLevel,
-    ) async {
+  Pointer<Void> dst,
+  int dstCapacity,
+  Pointer<Void> src,
+  int srcSize,
+  int compressionLevel,
+) async {
   final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
   final int requestId = _nextCompressRequestId++;
   final _CompressRequest request = _CompressRequest(
@@ -144,15 +149,15 @@ Future<int> compressAsync(
 }
 
 Future<int> decompressAsync(
-    Pointer<Void> dst,
-    int dstCapacity,
-    Pointer<Void> src,
-    int compressedSize,
-    ) async {
+  Pointer<Void> dst,
+  int dstCapacity,
+  Pointer<Void> src,
+  int compressedSize,
+) async {
   final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
   final int requestId = _nextDecompressRequestId++;
   final _DecompressRequest request =
-  _DecompressRequest(requestId, dst, dstCapacity, src, compressedSize);
+      _DecompressRequest(requestId, dst, dstCapacity, src, compressedSize);
   final Completer<int> completer = Completer<int>();
   _decompressRequests[requestId] = completer;
   helperIsolateSendPort.send(request);
@@ -248,7 +253,7 @@ Future<SendPort> _helperIsolateSendPort = () async {
           final int result = _bindings.ZSTD_decompress(
               data.dst, data.dstCapacity, data.src, data.compressedSize);
           final _DecompressResponse response =
-          _DecompressResponse(data.id, result);
+              _DecompressResponse(data.id, result);
           sendPort.send(response);
           return;
         }
