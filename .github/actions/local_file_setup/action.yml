@@ -144,3 +144,4 @@ runs:
           sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
           sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
       shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
+
