@@ -10,7 +10,7 @@ on:
 jobs:
   update_files:
     if: github.event.pull_request.merged == true
-    name: Tag and prepare files
+    name: Update files job
     runs-on: [self-hosted, macOS]
     steps:
       - uses: actions/checkout@v4
