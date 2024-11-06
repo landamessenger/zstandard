@@ -21,27 +21,59 @@ runs:
         file: './zstandard_platform_interface/pubspec.yaml'
         key-path: '["version"]'
 
-    - name: Copy CHANGELOG.md
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
-      run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          copy CHANGELOG.md zstandard_platform_interface\CHANGELOG.md
-          copy CHANGELOG.md zstandard_android\CHANGELOG.md
-          copy CHANGELOG.md zstandard_ios\CHANGELOG.md
-          copy CHANGELOG.md zstandard_macos\CHANGELOG.md
-          copy CHANGELOG.md zstandard_windows\CHANGELOG.md
-          copy CHANGELOG.md zstandard_linux\CHANGELOG.md
-          copy CHANGELOG.md zstandard_web\CHANGELOG.md
-          copy CHANGELOG.md zstandard_cli\CHANGELOG.md
-        else
-          cp CHANGELOG.md zstandard_platform_interface/CHANGELOG.md
-          cp CHANGELOG.md zstandard_android/CHANGELOG.md
-          cp CHANGELOG.md zstandard_ios/CHANGELOG.md
-          cp CHANGELOG.md zstandard_macos/CHANGELOG.md
-          cp CHANGELOG.md zstandard_windows/CHANGELOG.md
-          cp CHANGELOG.md zstandard_linux/CHANGELOG.md
-          cp CHANGELOG.md zstandard_web/CHANGELOG.md
-          cp CHANGELOG.md zstandard_cli/CHANGELOG.md
+    - name: Copy CHANGELOG.md to zstandard_platform_interface
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard_platform_interface/CHANGELOG.md"
+
+    - name: Copy CHANGELOG.md to zstandard
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard/CHANGELOG.md"
+
+    - name: Copy CHANGELOG.md to zstandard_android
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard_android/CHANGELOG.md"
+
+    - name: Copy CHANGELOG.md to zstandard_ios
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard_ios/CHANGELOG.md"
+
+    - name: Copy CHANGELOG.md to zstandard_macos
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard_macos/CHANGELOG.md"
+
+    - name: Copy CHANGELOG.md to zstandard_linux
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard_linux/CHANGELOG.md"
+
+    - name: Copy CHANGELOG.md to zstandard_windows
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard_windows/CHANGELOG.md"
+
+    - name: Copy CHANGELOG.md to zstandard_web
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard_web/CHANGELOG.md"
+
+    - name: Copy CHANGELOG.md to zstandard_cli
+      uses: canastro/copy-file-action@master
+      with:
+        source: "CHANGELOG.md"
+        target: "zstandard_cli/CHANGELOG.md"
 
     # zstandard
     - name: Update zstandard/pubspec.yaml
