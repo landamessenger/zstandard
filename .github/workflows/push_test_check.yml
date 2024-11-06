@@ -1,4 +1,4 @@
-name: Push Test Check Android
+name: Push Test Check Composite
 
 on:
   push:
