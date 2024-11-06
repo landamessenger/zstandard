@@ -11,8 +11,8 @@ runs:
         node-version: '18.x'
 
     - name: Install Landa Messenger CLI
-      run: npm install @landamessenger/landa-messenger-api -g
       shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
+      run: npm install @landamessenger/landa-messenger-api -g
 
     - name: Run read-yaml action
       id: version_data
@@ -22,10 +22,11 @@ runs:
         key-path: '["version"]'
 
     - name: Display read-yaml output
-      run: echo "Bumping version ${{ steps.version_data.outputs.data }}"
       shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
+      run: echo "Bumping version ${{ steps.version_data.outputs.data }}"
 
     - name: Copy CHANGELOG.md
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
       run: |
         if [ "${{ runner.os }}" == "Windows" ]; then
           copy CHANGELOG.md zstandard_platform_interface\CHANGELOG.md
@@ -45,7 +46,6 @@ runs:
           cp CHANGELOG.md zstandard_linux/CHANGELOG.md
           cp CHANGELOG.md zstandard_web/CHANGELOG.md
           cp CHANGELOG.md zstandard_cli/CHANGELOG.md
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
 
     # zstandard
     - name: Update zstandard/pubspec.yaml
