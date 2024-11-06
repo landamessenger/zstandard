@@ -1,29 +1,33 @@
 name: Tag Version and Publish on Push to Master
 
 on:
-  pull_request:
+  workflow_run:
+    workflows: ["Update files"]
     types:
-      - closed
-    branches:
-      - master
+      - completed
 
 jobs:
   tag_version:
-    if: github.event.pull_request.merged == true
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Tag and prepare files
     runs-on: [self-hosted, macOS]
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
 
-      - name: Commit and Push version updates
-        uses: EndBug/add-and-commit@v9
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
         with:
-          add: '.'
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
-          default_author: user_info
-          message: 'gh-action: Bump dependencies version to ${{ env.VERSION }}'
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create tag
         id: create_tag
@@ -43,13 +47,32 @@ jobs:
           git tag "v${{ env.VERSION }}"
           git push origin "v${{ env.VERSION }}"
 
+      - name: Get latest pull request info
+        id: pr_info
+        uses: octokit/request-action@v2
+        with:
+          route: GET /repos/${{ github.repository }}/pulls
+          query: |
+            per_page=1
+            state=closed
+            base=${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse pull request info
+        if: ${{ steps.pr_info.outputs.data }}
+        id: parse_pr
+        run: |
+          echo "PR_TITLE=$(echo '${{ steps.pr_info.outputs.data }}' | jq -r '.[0].title')" >> $GITHUB_ENV
+          echo "PR_BODY=$(echo '${{ steps.pr_info.outputs.data }}' | jq -r '.[0].body')" >> $GITHUB_ENV
+
       - name: Create release
         if: ${{ steps.create_tag.outcome == 'success' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "v${{ env.VERSION }}"
-          name: "${{ github.event.pull_request.title }}"
-          body: "${{ github.event.pull_request.body }}"
+          name: "${{ env.PR_TITLE }}"
+          body: "${{ env.PR_BODY }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -92,8 +115,20 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: tag_version
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -182,8 +217,20 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -255,8 +302,20 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -328,8 +387,20 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_macos
@@ -401,8 +472,20 @@ jobs:
     runs-on: [self-hosted, Windows]
     needs: platform_interface
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -474,8 +557,20 @@ jobs:
     runs-on: [self-hosted, Linux]
     needs: platform_interface
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -547,8 +642,20 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -620,8 +727,20 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - name: Setup local files
-        uses: ../.github/actions/local_files_setup.yml
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_cli
