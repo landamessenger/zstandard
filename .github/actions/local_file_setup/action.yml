@@ -22,7 +22,8 @@ runs:
         key-path: '["version"]'
 
     - name: Display read-yaml output
-      run: echo "${{ steps.version_data.outputs.data }}"
+      run: echo "Bumping version ${{ steps.version_data.outputs.data }}"
+      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
 
     - name: Copy CHANGELOG.md
       run: |
@@ -171,5 +172,3 @@ runs:
         propertyPath: 'version'
         value: '${{ steps.version_data.outputs.data }}'
         commitChange: false
-
-
