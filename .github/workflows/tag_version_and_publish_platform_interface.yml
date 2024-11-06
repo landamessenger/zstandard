@@ -183,7 +183,7 @@ jobs:
               --text_color "#DD000000"
 
       - name: Wait a minute
-        run: sleep 60
+        run: sleep 120
 
       - name: Handle job completion
         if: always()
@@ -489,11 +489,6 @@ jobs:
       - name: Install Landa Messenger CLI
         shell: cmd
         run: npm install -g @landamessenger/landa-messenger-api
-
-      - uses: subosito/flutter-action@v1
-        with:
-          channel: 'stable'
-          flutter-version: '3.24.3'
 
       - name: Get dependencies
         working-directory: zstandard_windows
