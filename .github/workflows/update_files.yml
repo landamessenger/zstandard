@@ -1,0 +1,142 @@
+name: Update files
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+
+jobs:
+  update_files:
+    if: github.event.pull_request.merged == true
+    name: Tag and prepare files
+    runs-on: [self-hosted, macOS]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Pre check tag
+        id: pre_check_tag
+        run: |
+          # Checks if the tag already exists in the remote repository
+          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "Error: Tag v${{ env.VERSION }} already exists."
+            exit 1
+          fi
+    
+          # Check if the version was found
+          if [ -z "${{ env.VERSION }}" ]; then
+            echo "Error: No version found in pubspec.yml"
+            exit 1
+          fi  
+
+      - name: Copy CHANGELOG.md
+        run: |
+          cp CHANGELOG.md "zstandard_platform_interface/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_android/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_ios/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_macos/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_windows/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_linux/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_web/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_cli/CHANGELOG.md"
+
+      - name: Update version in zstandard_android pubspec.yaml
+        working-directory: zstandard_android
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+
+      - name: Update version in zstandard_ios pubspec.yaml
+        working-directory: zstandard_ios
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+
+      - name: Update version in zstandard_macos pubspec.yaml
+        working-directory: zstandard_macos
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+
+      - name: Update version in zstandard_linux pubspec.yaml
+        working-directory: zstandard_linux
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+
+      - name: Update version in zstandard_windows pubspec.yaml
+        working-directory: zstandard_windows
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+
+      - name: Update version in zstandard_web pubspec.yaml
+        working-directory: zstandard_web
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
+
+      - name: Update version in zstandard_cli pubspec.yaml
+        working-directory: zstandard_cli
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+
+      - name: Commit and Push version updates
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: '.'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Bump dependencies version to ${{ env.VERSION }}'
+
+      - name: Handle job completion
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "failure" ]; then
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🔴 Update files Failed" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/object/actions/workflows/update_files.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          elif [ "${{ job.status }}" == "cancelled" ]; then
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🟠 Update files Canceled" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/object/actions/workflows/update_files.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          else
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🟢 Update files Passed" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/object/actions/workflows/update_files.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          fi
