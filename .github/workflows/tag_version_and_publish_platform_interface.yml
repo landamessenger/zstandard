@@ -13,74 +13,8 @@ jobs:
     name: Tag and prepare files
     runs-on: [self-hosted, macOS]
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
-        id: read_version
-        run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Copy CHANGELOG.md
-        run: |
-          cp CHANGELOG.md "zstandard_platform_interface/CHANGELOG.md"
-          cp CHANGELOG.md "zstandard_android/CHANGELOG.md"
-          cp CHANGELOG.md "zstandard_ios/CHANGELOG.md"
-          cp CHANGELOG.md "zstandard_macos/CHANGELOG.md"
-          cp CHANGELOG.md "zstandard_windows/CHANGELOG.md"
-          cp CHANGELOG.md "zstandard_linux/CHANGELOG.md"
-          cp CHANGELOG.md "zstandard_web/CHANGELOG.md"
-          cp CHANGELOG.md "zstandard_cli/CHANGELOG.md"
-
-      - name: Update version in zstandard_android pubspec.yaml
-        working-directory: zstandard_android
-        run: |
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
-      - name: Update version in zstandard_ios pubspec.yaml
-        working-directory: zstandard_ios
-        run: |
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
-      - name: Update version in zstandard_macos pubspec.yaml
-        working-directory: zstandard_macos
-        run: |
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
-      - name: Update version in zstandard_linux pubspec.yaml
-        working-directory: zstandard_linux
-        run: |
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
-      - name: Update version in zstandard_windows pubspec.yaml
-        working-directory: zstandard_windows
-        run: |
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
-      - name: Update version in zstandard_web pubspec.yaml
-        working-directory: zstandard_web
-        run: |
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
-          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ env.VERSION }}/" pubspec.yaml
-
-      - name: Update version in zstandard_cli pubspec.yaml
-        working-directory: zstandard_cli
-        run: |
-          sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Commit and Push version updates
         uses: EndBug/add-and-commit@v9
@@ -158,20 +92,8 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: tag_version
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Copy CHANGELOG.md
-        working-directory: zstandard_platform_interface
-        run: |
-          cp "../CHANGELOG.md" CHANGELOG.md
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -260,20 +182,8 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Copy CHANGELOG.md
-        working-directory: zstandard_android
-        run: |
-          cp "../CHANGELOG.md" CHANGELOG.md
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -345,20 +255,8 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Copy CHANGELOG.md
-        working-directory: zstandard_ios
-        run: |
-          cp "../CHANGELOG.md" CHANGELOG.md
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -430,20 +328,8 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Copy CHANGELOG.md
-        working-directory: zstandard_macos
-        run: |
-          cp "../CHANGELOG.md" CHANGELOG.md
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_macos
@@ -515,20 +401,8 @@ jobs:
     runs-on: [self-hosted, Windows]
     needs: platform_interface
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Copy CHANGELOG.md
-        working-directory: zstandard_windows
-        run: |
-          cp "../CHANGELOG.md" CHANGELOG.md
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -600,20 +474,8 @@ jobs:
     runs-on: [self-hosted, Linux]
     needs: platform_interface
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Copy CHANGELOG.md
-        working-directory: zstandard_linux
-        run: |
-          cp "../CHANGELOG.md" CHANGELOG.md
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -685,20 +547,8 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Copy CHANGELOG.md
-        working-directory: zstandard_web
-        run: |
-          cp "../CHANGELOG.md" CHANGELOG.md
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -770,20 +620,8 @@ jobs:
     runs-on: [self-hosted, macOS]
     needs: platform_interface
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Copy CHANGELOG.md
-        working-directory: zstandard_cli
-        run: |
-          cp "../CHANGELOG.md" CHANGELOG.md
+      - name: Setup local files
+        uses: ./.github/actions/local_files_setup.yml
 
       - name: Get dependencies
         working-directory: zstandard_cli
