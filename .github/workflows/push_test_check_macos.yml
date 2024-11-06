@@ -90,17 +90,19 @@ jobs:
         working-directory: zstandard_web
         run: flutter pub get
 
-      - name: Test Web
+      - name: Start ChromeDriver
+        run: |
+          chromedriver --port=4444 &
+          sleep 5 # Wait for ChromeDriver to start
+
+      - name: Run Web Integration Tests
         working-directory: zstandard_web
-        run: flutter test --coverage
+        run: flutter drive \
+          --driver=test_driver/integration_test.dart \
+          --target=integration_test/zstandard_web_integration_test.dart \
+          -d chrome
 
-      - name: Upload Web coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: zstandard_web/coverage/lcov.info
-
-###################################################################
+      ###################################################################
 
       - name: Get macOS dependencies
         working-directory: zstandard_macos

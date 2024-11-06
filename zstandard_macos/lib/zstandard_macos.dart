@@ -33,7 +33,8 @@ class ZstandardMacOS extends ZstandardPlatform {
 
   @override
   Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    final version =
+        await methodChannel.invokeMethod<String>('getPlatformVersion');
     return version;
   }
 
@@ -75,7 +76,11 @@ class ZstandardMacOS extends ZstandardPlatform {
     final Pointer<Uint8> src = malloc.allocate<Uint8>(compressedSize);
     src.asTypedList(compressedSize).setAll(0, data);
 
-    final int dstCapacity = compressedSize * 4;
+    final int decompressedSizeExpected =
+        _bindings.ZSTD_getDecompressedSize(src.cast(), compressedSize);
+    final int dstCapacity = decompressedSizeExpected > 0
+        ? decompressedSizeExpected
+        : compressedSize * 20;
     final Pointer<Uint8> dst = malloc.allocate<Uint8>(dstCapacity);
 
     try {
