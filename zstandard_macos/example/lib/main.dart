@@ -103,8 +103,8 @@ class _MyAppState extends State<MyApp> {
     Uint8List? decompressed;
 
     try {
-      compressed = await _zstandard.compress(_originalData);
-      decompressed = await _zstandard.decompress(compressed ?? Uint8List(0));
+      compressed = await _originalData.compress();
+      decompressed = await compressed.decompress();
     } catch (e) {
       if (kDebugMode) {
         print(e);

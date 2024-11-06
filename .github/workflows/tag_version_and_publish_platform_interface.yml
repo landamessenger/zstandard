@@ -492,7 +492,7 @@ jobs:
           fi
   windows:
     name: Publish Windows dependency
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, Windows]
     needs: platform_interface
     steps:
       - uses: actions/checkout@v4
@@ -572,7 +572,7 @@ jobs:
           fi
   linux:
     name: Publish Linux dependency
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, Linux]
     needs: platform_interface
     steps:
       - uses: actions/checkout@v4
