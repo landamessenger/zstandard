@@ -5,8 +5,8 @@ on:
     branches:
       - '**'
       - '!master'
-    paths:
-      - "zstandard/**"
+    #paths:
+    #  - "zstandard/**"
 jobs:
   check_zstandard_analyze:
     name: Analyze Zstandard

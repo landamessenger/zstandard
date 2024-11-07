@@ -5,8 +5,8 @@ on:
     branches:
       - '**'
       - '!master'
-    paths:
-      - "zstandard_web/**"
+    #paths:
+    #  - "zstandard_web/**"
 jobs:
   check_web_analyze:
     name: Analyze Web

@@ -5,8 +5,8 @@ on:
     branches:
       - '**'
       - '!master'
-    paths:
-      - "zstandard_cli/**"
+    #paths:
+    #  - "zstandard_cli/**"
 jobs:
   check_cli_analyze:
     name: Analyze CLI

@@ -5,8 +5,8 @@ on:
     branches:
       - '**'
       - '!master'
-    paths:
-      - "zstandard_macos/**"
+    #paths:
+    #  - "zstandard_macos/**"
 jobs:
   check_macos_analyze:
     name: Analyze macOS
