@@ -1,4 +1,4 @@
-## 1.3.0
+## 1.3.18
 
 * Fixed decompression size.
 * Added `compressionLevel` parameter.
