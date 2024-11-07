@@ -20,6 +20,9 @@ jobs:
         with:
           node-version: '18.x'
 
+      - name: Switch to SSH
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
