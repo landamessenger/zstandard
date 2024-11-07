@@ -55,6 +55,7 @@ jobs:
           cp CHANGELOG.md "zstandard_linux/CHANGELOG.md"
           cp CHANGELOG.md "zstandard_web/CHANGELOG.md"
           cp CHANGELOG.md "zstandard_cli/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard/CHANGELOG.md"
 
       - name: Update version in zstandard_android pubspec.yaml
         working-directory: zstandard_android
