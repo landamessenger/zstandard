@@ -2225,11 +2225,11 @@ jobs:
 
       - name: Get dependencies
         working-directory: zstandard
-        run: dart pub get
+        run: flutter pub get
 
       - name: Analyze check
         working-directory: zstandard
-        run: dart analyze
+        run: flutter analyze
 
       - name: Handle job completion
         if: always()
@@ -2287,11 +2287,11 @@ jobs:
 
       - name: Get dependencies
         working-directory: zstandard
-        run: dart pub get
+        run: flutter pub get
 
       - name: Test check
         working-directory: zstandard
-        run: dart test
+        run: flutter test
 
       - name: Handle job completion
         if: always()
@@ -2349,7 +2349,7 @@ jobs:
 
       - name: Get dependencies
         working-directory: zstandard
-        run: dart pub get
+        run: flutter pub get
 
       - name: Publish Dry Run
         working-directory: zstandard
@@ -2411,7 +2411,7 @@ jobs:
 
       - name: Get dependencies
         working-directory: zstandard
-        run: dart pub get
+        run: flutter pub get
 
       - name: Publish
         working-directory: zstandard
