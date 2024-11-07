@@ -1,0 +1,193 @@
+name: Push Checks Android
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!master'
+    paths:
+      - "zstandard_android/**"
+jobs:
+  check_android_analyze:
+    name: Analyze Android
+    runs-on: [self-hosted, macOS]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
+
+      - name: Get dependencies
+        working-directory: zstandard_android
+        run: flutter pub get
+
+      - name: Analyze check
+        working-directory: zstandard_android
+        run: flutter analyze
+
+      - name: Handle job completion
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "failure" ]; then
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🔴 Analyze - Android Failed" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          elif [ "${{ job.status }}" == "cancelled" ]; then
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🟠 Analyze - Android Canceled" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          else
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🟢 Analyze - Android Passed" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          fi
+  check_android_test:
+    name: Test Android
+    runs-on: [self-hosted, macOS]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
+
+      - name: Get dependencies
+        working-directory: zstandard_android
+        run: flutter pub get
+
+      - name: Test check
+        working-directory: zstandard_android
+        run: flutter test
+
+      - name: Handle job completion
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "failure" ]; then
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🔴 Test - Android Failed" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          elif [ "${{ job.status }}" == "cancelled" ]; then
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🟠 Test - Android Canceled" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          else
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🟢 Test - Android Passed" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          fi
+  check_android_publish_dry_run:
+    name: Dry Run Publish Android
+    runs-on: [self-hosted, macOS]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.3'
+
+      - name: Get dependencies
+        working-directory: zstandard_android
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_android
+        run: dart pub publish --dry-run
+
+      - name: Handle job completion
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "failure" ]; then
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🔴 Dry Run Publish - Android Failed" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          elif [ "${{ job.status }}" == "cancelled" ]; then
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🟠 Dry Run Publish - Android Canceled" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          else
+            landa-messenger-api chat-send \
+              --id "${{ secrets.CHAT_ID }}" \
+              --api_key "${{ secrets.CHAT_KEY }}" \
+              --title "🟢 Dry Run Publish - Android Passed" \
+              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
+              --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
+              --background_color "#55000000" \
+              --text_color "#FFFFFFFF"
+          fi
