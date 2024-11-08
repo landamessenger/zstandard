@@ -10,6 +10,15 @@ Zstandard (zstd) is a fast, high-compression algorithm developed by Meta (former
 
 **Only available on macOS, Windows, and Linux desktops**.
 
+
+|             | [macOS](https://flutter.dev/desktop) | [Windows](https://flutter.dev/desktop) | [Linux](https://flutter.dev/desktop) |
+|:-----------:|:------------------------------------:|:--------------------------------------:|:------------------------------------:|
+|     x64     |          :heavy_check_mark:          |           :heavy_check_mark:           |          :heavy_check_mark:          |
+|    arm64    |      :heavy_check_mark:              |           :heavy_check_mark:           |       :heavy_check_mark:             |  
+| Precompiled |                 Yes                  |                  Yes                   |                 Yes                  |  
+
+> This is a pure Dart package for desktops. For Flutter usage check the [zstandard](https://pub.dev/packages/zstandard) plugin
+
 ## Basic Usage
 
 ```dart
