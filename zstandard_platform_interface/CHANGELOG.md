@@ -1,7 +1,10 @@
-## 1.3.25
+## 1.4.0
 
 * Fixed decompression size.
+* Added [CLI](https://pub.dev/packages/zstandard_cli) support.
 * Added `compressionLevel` parameter.
+* Github Actions.
+* Doc updated
 
 ## 1.2.0
 
