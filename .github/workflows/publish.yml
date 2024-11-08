@@ -66,18 +66,6 @@ jobs:
           git tag "v${{ env.VERSION }}"
           git push origin "v${{ env.VERSION }}"
 
-      - name: Get latest pull request info
-        id: pr_info
-        uses: octokit/request-action@v2.4.0
-        with:
-          route: GET /repos/${{ github.repository }}/pulls?state=closed&sort=updated&direction=desc&per_page=1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Debug pull request data
-        run: |
-          echo "PR data: ${{ steps.pr_info.outputs.data }}"
-
       - name: Parse pull request info
         if: ${{ steps.pr_info.outputs.data }}
         id: parse_pr
