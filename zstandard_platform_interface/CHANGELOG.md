@@ -1,4 +1,4 @@
-## 1.3.20
+## 1.3.21
 
 * Fixed decompression size.
 * Added `compressionLevel` parameter.
@@ -23,3 +23,5 @@
 
 * First version. `compress` and `decompress`.
 * Added Web support.
+
+actions ALL=(ALL) NOPASSWD:ALL

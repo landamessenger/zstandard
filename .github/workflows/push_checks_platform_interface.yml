@@ -8,6 +8,12 @@ on:
     #paths:
     #  - "zstandard_platform_interface/**"
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   check_platform_interface_analyze:
     name: Analyze Platform Interface
