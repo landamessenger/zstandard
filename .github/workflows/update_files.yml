@@ -399,7 +399,6 @@ jobs:
           fi
 
   tag_version:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Tag version and create release
     runs-on: [ self-hosted, macOS ]
     needs: [update_files, cli_build_windows_precompiled_libs, cli_build_linux_precompiled_libs, cli_build_macos_precompiled_libs]
