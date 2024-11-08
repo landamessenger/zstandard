@@ -22,8 +22,4 @@
 ## 1.0.0
 
 * First version. `compress` and `decompress`.
-* Added Web support. 
-
-
-
-.
+* Added Web support.

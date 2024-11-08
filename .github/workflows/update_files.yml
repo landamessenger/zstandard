@@ -20,6 +20,9 @@ jobs:
         with:
           node-version: '18.x'
 
+      - name: Switch to SSH
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
@@ -109,6 +112,10 @@ jobs:
         working-directory: zstandard_cli
         run: |
           sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
+
+      - name: Check ssh
+        run: |
+          ssh -T git@github.com
 
       - name: Commit and Push version updates
         uses: EndBug/add-and-commit@v9
