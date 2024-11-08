@@ -72,6 +72,10 @@ jobs:
           cd zstandard_cli/lib/src/bin
           lipo -info libzstandard_macos.dylib
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin master
+
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
         with:
@@ -96,11 +100,6 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Install cross-compilation toolchain
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Download source files from facebook/zstd
         run: |
@@ -138,6 +137,10 @@ jobs:
           cd zstandard_cli/lib/src/bin
           file libzstandard_linux_x64.so
           file libzstandard_linux_arm64.so
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin master
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
@@ -211,6 +214,11 @@ jobs:
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" amd64
           dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_x64.dll | findstr /c:"machine"
           dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_arm64.dll | findstr /c:"machine"
+
+      - name: Git pull --no-ff
+        shell: cmd
+        run: |
+          git pull --no-ff origin master
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
