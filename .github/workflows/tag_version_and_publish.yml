@@ -1,4 +1,4 @@
-name: Tag Version and Publish
+name: Publish new version
 
 on:
   pull_request:
