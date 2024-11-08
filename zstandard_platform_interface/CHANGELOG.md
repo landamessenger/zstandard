@@ -23,5 +23,3 @@
 
 * First version. `compress` and `decompress`.
 * Added Web support.
-
-actions ALL=(ALL) NOPASSWD:ALL
