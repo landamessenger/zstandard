@@ -34,8 +34,12 @@ jobs:
         id: read_version
         shell: cmd
         run: |
-          for /f "tokens=2 delims= " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
-          echo VERSION=%VERSION% >> %GITHUB_ENV%
+          setlocal enabledelayedexpansion
+          for /f "tokens=2 delims= " %%a in ('findstr "^version: " pubspec.yaml') do (
+            set VERSION=%%a
+          )
+          echo VERSION=!VERSION! >> %GITHUB_ENV%
+          endlocal
 
       - name: Get dependencies
         working-directory: zstandard_windows
