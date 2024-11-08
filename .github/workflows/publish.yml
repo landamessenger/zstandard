@@ -15,7 +15,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Analyze Platform Interface
     runs-on: [self-hosted, macOS]
-    needs: tag_version
     steps:
       - uses: actions/checkout@v4
 
@@ -85,7 +84,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Test Platform Interface
     runs-on: [self-hosted, macOS]
-    needs: tag_version
     steps:
       - uses: actions/checkout@v4
 
@@ -155,7 +153,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Dry Run Publish Platform Interface
     runs-on: [self-hosted, macOS]
-    needs: tag_version
     steps:
       - uses: actions/checkout@v4
 
