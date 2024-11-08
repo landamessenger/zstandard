@@ -34,15 +34,6 @@ jobs:
           VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
-        id: read_version
-        run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -110,15 +101,6 @@ jobs:
         run: |
           VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
-        id: read_version
-        run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
 
       - uses: subosito/flutter-action@v1
         with:
@@ -190,15 +172,6 @@ jobs:
         run: |
           VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
-        id: read_version
-        run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
 
       - uses: subosito/flutter-action@v1
         with:
