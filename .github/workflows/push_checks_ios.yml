@@ -9,7 +9,7 @@ on:
     #  - "zstandard_ios/**"
 
 concurrency:
-  group: ${{ github.ref }}-${{ runner.os }}-${{ github.actor }}-${{ runner.name }}
+  group: ${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 
