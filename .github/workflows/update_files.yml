@@ -113,10 +113,6 @@ jobs:
         run: |
           sed -i '' "s/^version:.*/version: ${{ env.VERSION }}/" pubspec.yaml
 
-      - name: Check ssh
-        run: |
-          ssh -T git@github.com
-
       - name: Commit and Push version updates
         uses: EndBug/add-and-commit@v9
         with:
