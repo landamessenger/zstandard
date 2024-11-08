@@ -2,13 +2,21 @@
 
 # zstandard_cli
 
-The CLI implementation of [`zstandard`](https://pub.dev/packages/zstandard). 
+The command-line implementation of [`zstandard`](https://pub.dev/packages/zstandard).
 
-Zstandard (zstd) is a fast, high-compression algorithm developed by Meta (formerly Facebook) designed for real-time compression scenarios. It provides a flexible range of compression levels, allowing both high-speed and high-ratio compression, making it ideal for applications with diverse performance needs. Zstandard is commonly used in data storage, transmission, and backup solutions.
+Zstandard (zstd) is a fast compression algorithm developed by Meta (formerly Facebook) for real-time scenarios. It provides a flexible range of compression levels, enabling both high-speed and high-compression-ratio options. This makes it ideal for applications needing efficient data storage, transmission, and backup solutions.
 
-`zstandard_cli` is a Dart package which provides bindings to the high-performance Zstandard compression library, enabling both in-code and command-line compression and decompression. It leverages FFI for direct access to native Zstandard functionality, allowing efficient data processing in Dart applications, from compressing data in memory to handling files through the CLI.
+`zstandard_cli` is a Dart package that binds to the high-performance Zstandard compression library, enabling both in-code and command-line compression and decompression. It leverages FFI to directly access native Zstandard functionality, allowing efficient data processing in Dart applications, from in-memory data compression to file handling via the CLI.
 
-**Only available on macOS, Windows, and Linux desktops**.
+**Available on macOS, Windows, and Linux desktops only**.
+
+|             | [macOS](https://flutter.dev/desktop) | [Windows](https://flutter.dev/desktop) | [Linux](https://flutter.dev/desktop) |
+|:-----------:|:------------------------------------:|:--------------------------------------:|:------------------------------------:|
+|     x64     |          :heavy_check_mark:          |           :heavy_check_mark:           |          :heavy_check_mark:          |
+|    arm64    |          :heavy_check_mark:          |           :heavy_check_mark:           |          :heavy_check_mark:          |  
+| Precompiled |                 Yes                  |                  Yes                   |                 Yes                  |  
+
+> **Note:** This is a pure Dart package for desktop usage. For Flutter, please see the [zstandard](https://pub.dev/packages/zstandard) plugin.
 
 ## Basic Usage
 
@@ -44,6 +52,9 @@ dart run zstandard_cli:compress any_file 3
 dart run zstandard_cli:decompress any_file.zstd
 ```
 
+---
+
+The images provided below illustrate how to use `zstandard_cli` for compression and decompression on different platforms.
 
 <p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/macos_compression_sample.png"></p>
 <p align="center"><img width="90%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_cli/images/macos_decompression_sample.png"></p>

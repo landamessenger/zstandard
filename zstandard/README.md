@@ -2,9 +2,9 @@
 
 # Zstandard
 
-Zstandard (zstd) is a fast, high-compression algorithm developed by Meta (formerly Facebook) designed for real-time compression scenarios. It provides a flexible range of compression levels, allowing both high-speed and high-ratio compression, making it ideal for applications with diverse performance needs. Zstandard is commonly used in data storage, transmission, and backup solutions.
+Zstandard (zstd) is a fast, high-compression algorithm developed by Meta (formerly Facebook) for real-time applications. It offers a broad range of compression levels, supporting both high-speed and high-compression-ratio requirements, making it ideal for data storage, transmission, and backup solutions.
 
-This is a Flutter plugin that provides a pure implementation of the zstd compression algorithm, developed by Meta. It integrates the zstd library in C through FFI for native platforms, ensuring efficient compression and decompression. For web platforms, it leverages WebAssembly to deliver the same robust compression capabilities. This plugin enables seamless, cross-platform data compression, making it ideal for applications requiring high-speed and efficient data processing.
+This Flutter plugin provides a native implementation of the zstd compression algorithm. It integrates the zstd library in C through FFI for native platforms (Android, iOS, Windows, macOS, and Linux), ensuring efficient compression and decompression. On the web, it leverages WebAssembly to deliver the same high-performance compression. This plugin enables seamless, cross-platform data compression, suitable for applications needing fast, efficient data processing.
 
 |             |      Android       |        iOS         | [Web](https://flutter.dev/web) | [macOS](https://flutter.dev/desktop) | [Windows](https://flutter.dev/desktop) | [Linux](https://flutter.dev/desktop) | [Fuchsia](https://fuchsia.dev/) |
 |:-----------:|:------------------:|:------------------:|:------------------------------:|:------------------------------------:|:--------------------------------------:|:------------------------------------:|:-------------------------------:|
@@ -12,10 +12,11 @@ This is a Flutter plugin that provides a pure implementation of the zstd compres
 |   Native    |        FFI         |        FFI         |          WebAssembly           |                 FFI                  |                  FFI                   |                 FFI                  |                ❌                |
 | Precompiled |         No         |         No         |           Yes (wasm)           |                  No                  |                   No                   |                  No                  |                ❌                 |
 
+> **Note:** The C files for the compression library are sourced from the official [facebook/zstd](https://github.com/facebook/zstd/tree/dev/lib) repository.
 
-> The C files to build the compression library come from the original [facebook/zstd](https://github.com/facebook/zstd/tree/dev/lib) repository.
+> For command-line usage on desktops, refer to the [zstandard_cli](https://pub.dev/packages/zstandard_cli) package.
 
-## Usage
+## Basic Usage
 
 ```dart
 void act() async {
@@ -40,6 +41,8 @@ void act() async {
   Uint8List? decompressed = await compressed.decompress();
 }
 ```
+
+Below are examples of the plugin in action across different platforms.
 
 <p align="center"><img width="50%" vspace="10" src="https://github.com/landamessenger/zstandard/raw/master/zstandard_android/images/sample.png"></p>
 
