@@ -7,6 +7,12 @@ on:
       - '!master'
     #paths:
     #  - "zstandard/**"
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   check_zstandard_analyze:
     name: Analyze Zstandard

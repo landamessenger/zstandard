@@ -7,6 +7,12 @@ on:
     branches:
       - master
 
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   cli_build_macos_precompiled_libs:
     name: macOS precompiled libraries

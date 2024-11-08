@@ -7,6 +7,12 @@ on:
       - '!master'
     #paths:
     #  - "zstandard_windows/**"
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   check_windows_analyze:
     name: Analyze Windows
