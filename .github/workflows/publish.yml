@@ -30,6 +30,13 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Download source files from facebook/zstd
         run: |
           cd zstandard_cli
@@ -102,6 +109,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Download source files from facebook/zstd
         run: |
@@ -395,6 +409,9 @@ jobs:
         with:
           node-version: '18.x'
 
+      - name: Switch to SSH
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
@@ -482,6 +499,13 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -503,7 +527,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Analyze - Platform Interface Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -513,7 +537,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Analyze - Platform Interface Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -523,7 +547,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Analyze - Platform Interface Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -543,6 +567,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -565,7 +596,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Test - Platform Interface Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -575,7 +606,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Test - Platform Interface Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -585,7 +616,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Test - Platform Interface Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -605,6 +636,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -627,7 +665,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Platform Interface Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -637,7 +675,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Platform Interface Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -647,7 +685,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Platform Interface Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -667,6 +705,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -720,7 +765,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Platform Interface Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -730,7 +775,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Platform Interface Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -740,7 +785,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Platform Interface Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -760,6 +805,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -782,7 +834,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Analyze - Android Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -792,7 +844,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Analyze - Android Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -802,7 +854,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Analyze - Android Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -822,6 +874,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -844,7 +903,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Test - Android Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -854,7 +913,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Test - Android Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -864,7 +923,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Test - Android Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -884,6 +943,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -906,7 +972,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Dry Run Publish - Android Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -916,7 +982,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Dry Run Publish - Android Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -926,7 +992,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Dry Run Publish - Android Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -946,6 +1012,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -979,7 +1052,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Publish - Android Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -989,7 +1062,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Publish - Android Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -999,7 +1072,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Publish - Android Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1019,6 +1092,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1041,7 +1121,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Analyze - iOS Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1051,7 +1131,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Analyze - iOS Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1061,7 +1141,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Analyze - iOS Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1081,6 +1161,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1103,7 +1190,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Test - iOS Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1113,7 +1200,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Test - iOS Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1123,7 +1210,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Test - iOS Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1143,6 +1230,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1165,7 +1259,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Dry Run Publish - iOS Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1175,7 +1269,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Dry Run Publish - iOS Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1185,7 +1279,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Dry Run Publish - iOS Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1205,6 +1299,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1238,7 +1339,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Publish - iOS Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1248,7 +1349,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Publish - iOS Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1258,7 +1359,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Publish - iOS Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1278,6 +1379,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1300,7 +1408,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Analyze - macOS Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1310,7 +1418,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Analyze - macOS Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1320,7 +1428,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Analyze - macOS Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1341,6 +1449,13 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -1358,7 +1473,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Test - macOS Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1368,7 +1483,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Test - macOS Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1378,7 +1493,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Test - macOS Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1398,6 +1513,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1420,7 +1542,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Dry Run Publish - macOS Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1430,7 +1552,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Dry Run Publish - macOS Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1440,7 +1562,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Dry Run Publish - macOS Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1460,6 +1582,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1493,7 +1622,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Publish - macOS Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1503,7 +1632,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Publish - macOS Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1513,7 +1642,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Publish - macOS Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1790,6 +1919,13 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -1811,7 +1947,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Analyze - Linux Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1821,7 +1957,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Analyze - Linux Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1831,7 +1967,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Analyze - Linux Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1851,6 +1987,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1873,7 +2016,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Test - Linux Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1883,7 +2026,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Test - Linux Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1893,7 +2036,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Test - Linux Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1913,6 +2056,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1935,7 +2085,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Dry Run Publish - Linux Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1945,7 +2095,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Dry Run Publish - Linux Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1955,7 +2105,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Dry Run Publish - Linux Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -1975,6 +2125,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2008,7 +2165,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Publish - Linux Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2018,7 +2175,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Publish - Linux Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2028,7 +2185,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Publish - Linux Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2048,6 +2205,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2070,7 +2234,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Analyze - Web Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2080,7 +2244,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Analyze - Web Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2090,7 +2254,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Analyze - Web Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2110,6 +2274,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2132,7 +2303,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Test - Web Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2142,7 +2313,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Test - Web Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2152,7 +2323,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Test - Web Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2172,6 +2343,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2194,7 +2372,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Dry Run Publish - Web Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2204,7 +2382,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Dry Run Publish - Web Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2214,7 +2392,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Dry Run Publish - Web Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2234,6 +2412,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2267,7 +2452,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Publish - Web Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2277,7 +2462,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Publish - Web Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2287,7 +2472,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Publish - Web Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2307,6 +2492,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2329,7 +2521,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Analyze - CLI Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2339,7 +2531,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Analyze - CLI Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2349,7 +2541,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Analyze - CLI Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2369,6 +2561,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2391,7 +2590,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Test - CLI Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2401,7 +2600,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Test - CLI Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2411,7 +2610,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Test - CLI Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2435,6 +2634,13 @@ jobs:
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
 
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -2456,7 +2662,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Dry Run Publish - CLI Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2466,7 +2672,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Dry Run Publish - CLI Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2476,7 +2682,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Dry Run Publish - CLI Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2496,6 +2702,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2529,7 +2742,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Publish - CLI Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2539,7 +2752,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Publish - CLI Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2549,7 +2762,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Publish - CLI Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2570,6 +2783,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2608,7 +2828,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Analyze - Zstandard Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2618,7 +2838,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Analyze - Zstandard Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2628,7 +2848,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Analyze - Zstandard Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2648,6 +2868,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2686,7 +2913,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Test - Zstandard Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2696,7 +2923,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Test - Zstandard Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2706,7 +2933,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Test - Zstandard Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2726,6 +2953,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2764,7 +2998,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Dry Run Publish - Zstandard Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2774,7 +3008,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Dry Run Publish - Zstandard Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2784,7 +3018,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Dry Run Publish - Zstandard Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2804,6 +3038,13 @@ jobs:
 
       - name: Install Landa Messenger CLI
         run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v1
         with:
@@ -2837,7 +3078,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Publish - Zstandard Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2847,7 +3088,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Publish - Zstandard Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -2857,7 +3098,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Publish - Zstandard Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}:  v${{ env.VERSION }}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
