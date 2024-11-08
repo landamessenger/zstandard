@@ -9,7 +9,7 @@ on:
 
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.ref }}-${{ runner.os }}-${{ github.actor }}-${{ runner.name }}
   cancel-in-progress: true
 
 

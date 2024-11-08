@@ -9,7 +9,7 @@ on:
     #  - "zstandard_cli/**"
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.ref }}-${{ runner.os }}-${{ github.actor }}-${{ runner.name }}
   cancel-in-progress: true
 
 jobs:
