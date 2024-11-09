@@ -39,7 +39,7 @@ jobs:
           echo The version is: %VERSION%
           echo The version is 2: ${{ env.VERSION }}
 
-      - name: Get dependencies
+      - name: Get dependencies for ${{ env.VERSION }}
         working-directory: zstandard_windows
         shell: cmd
         run: flutter pub get
