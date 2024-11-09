@@ -35,7 +35,7 @@ jobs:
         shell: cmd
         run: |
           for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
-          echo "VERSION=%VERSION%" >> %GITHUB_ENV%
+          echo "VERSION=%VERSION%" >> $env:GITHUB_ENV
           echo The version is: %VERSION%
 
       - name: Get dependencies
