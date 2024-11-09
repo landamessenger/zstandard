@@ -32,9 +32,9 @@ jobs:
       - name: Read version from pubspec.yaml
         working-directory: zstandard_platform_interface
         id: read_version
-        shell: pwsh
+        shell: powershell
         run: |
-          $version = (Select-String -Pattern '^version: ' -Path pubspec.yaml).Matches[0].Groups[1].Value.Trim()
+          $version = (Select-String -Pattern '^version: ' -Path pubspec.yaml).Matches[0].Groups[0].Value.Split(":")[1].Trim()
           echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
           Write-Output "The version is: $version"
 
