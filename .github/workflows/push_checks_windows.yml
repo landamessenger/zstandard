@@ -49,6 +49,7 @@ jobs:
         run: flutter analyze
 
       - name: Handle job completion
+        shell: cmd
         if: always()
         run: |
           if [ "${{ job.status }}" == "failure" ]; then
@@ -117,6 +118,7 @@ jobs:
 
       - name: Handle job completion
         if: always()
+        shell: cmd
         run: |
           if [ "${{ job.status }}" == "failure" ]; then
             landa-messenger-api chat-send \
@@ -185,6 +187,7 @@ jobs:
 
       - name: Handle job completion
         if: always()
+        shell: cmd
         run: |
           if [ "${{ job.status }}" == "failure" ]; then
             landa-messenger-api chat-send \
