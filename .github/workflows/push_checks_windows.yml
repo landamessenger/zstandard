@@ -32,11 +32,11 @@ jobs:
       - name: Read version from pubspec.yaml
         working-directory: zstandard_platform_interface
         id: read_version
-        shell: powershell
+        shell: cmd
         run: |
-          $version = (Select-String -Pattern '^version: ' -Path pubspec.yaml).Matches[0].Groups[0].Value.Split(":")[1].Trim()
-          echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-          Write-Output "The version is: $version"
+          for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
+          echo "version=%VERSION%" >> $GITHUB_OUTPUT
+          echo The version is: %VERSION%
 
       - name: Get dependencies for ${{ env.VERSION }}
         working-directory: zstandard_windows
@@ -55,7 +55,7 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           CHAT_KEY: ${{ secrets.CHAT_KEY }}
           REPO: ${{ github.repository }}
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ steps.read_version.outputs.version }}
           JOB_STATUS: ${{ job.status }}
         run: |
           echo The VERSION is: %VERSION%
