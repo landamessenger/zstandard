@@ -222,6 +222,8 @@ jobs:
     name: Publish Platform Interface
     runs-on: [self-hosted, macOS]
     needs: [platform_interface_analyze, platform_interface_test, platform_interface_publish_dry_run]
+    outputs:
+      version: ${{ steps.read_version.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v4
 
@@ -239,6 +241,7 @@ jobs:
         run: |
           VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - uses: subosito/flutter-action@v1
         with:
@@ -528,7 +531,7 @@ jobs:
   android_publish:
     name: Publish Android
     runs-on: [self-hosted, macOS]
-    needs: [android_analyze, android_test, android_publish_dry_run]
+    needs: [platform_interface_publish, android_analyze, android_test, android_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
 
@@ -815,7 +818,7 @@ jobs:
   ios_publish:
     name: Publish iOS
     runs-on: [self-hosted, macOS]
-    needs: [ios_analyze, ios_test, ios_publish_dry_run]
+    needs: [platform_interface_publish, ios_analyze, ios_test, ios_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
 
@@ -1098,7 +1101,7 @@ jobs:
   macos_publish:
     name: Publish macOS
     runs-on: [self-hosted, macOS]
-    needs: [macos_analyze, macos_test, macos_publish_dry_run]
+    needs: [platform_interface_publish, macos_analyze, macos_test, macos_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
 
@@ -1203,34 +1206,42 @@ jobs:
 
       - name: Handle job completion
         if: always()
+        working-directory: zstandard_platform_interface
         shell: cmd
+        env:
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          CHAT_KEY: ${{ secrets.CHAT_KEY }}
+          REPO: ${{ github.repository }}
+          JOB_STATUS: ${{ job.status }}
         run: |
-          if "%{{ job.status }}" == "failure" (
+          for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
+          echo The VERSION is: %VERSION%
+          if "%JOB_STATUS%" == "failure" (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🔴 Analyze - Windows Failed" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
               --text_color "#FFFFFFFF"
-          ) else if "%{{ job.status }}" == "cancelled" (
+          ) else if "%JOB_STATUS%" == "cancelled" (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🟠 Analyze - Windows Canceled" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
               --text_color "#FFFFFFFF"
           ) else (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🟢 Analyze - Windows Passed" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
@@ -1264,34 +1275,42 @@ jobs:
 
       - name: Handle job completion
         if: always()
+        working-directory: zstandard_platform_interface
         shell: cmd
+        env:
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          CHAT_KEY: ${{ secrets.CHAT_KEY }}
+          REPO: ${{ github.repository }}
+          JOB_STATUS: ${{ job.status }}
         run: |
-          if "%{{ job.status }}" == "failure" (
+          for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
+          echo The VERSION is: %VERSION%
+          if "%JOB_STATUS%" == "failure" (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🔴 Test - Windows Failed" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
               --text_color "#FFFFFFFF"
-          ) else if "%{{ job.status }}" == "cancelled" (
+          ) else if "%JOB_STATUS%" == "cancelled" (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🟠 Test - Windows Canceled" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
               --text_color "#FFFFFFFF"
           ) else (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🟢 Test - Windows Passed" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
@@ -1325,34 +1344,42 @@ jobs:
 
       - name: Handle job completion
         if: always()
+        working-directory: zstandard_platform_interface
         shell: cmd
+        env:
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          CHAT_KEY: ${{ secrets.CHAT_KEY }}
+          REPO: ${{ github.repository }}
+          JOB_STATUS: ${{ job.status }}
         run: |
-          if "%{{ job.status }}" == "failure" (
+          for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
+          echo The VERSION is: %VERSION%
+          if "%JOB_STATUS%" == "failure" (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🔴 Dry Run Publish - Windows Failed" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
               --text_color "#FFFFFFFF"
-          ) else if "%{{ job.status }}" == "cancelled" (
+          ) else if "%JOB_STATUS%" == "cancelled" (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🟠 Dry Run Publish - Windows Canceled" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
               --text_color "#FFFFFFFF"
           ) else (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🟢 Dry Run Publish - Windows Passed" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
@@ -1361,7 +1388,7 @@ jobs:
   windows_publish:
     name: Publish Windows
     runs-on: [self-hosted, Windows]
-    needs: [windows_analyze, windows_test, windows_publish_dry_run]
+    needs: [platform_interface_publish, windows_analyze, windows_test, windows_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
 
@@ -1391,41 +1418,49 @@ jobs:
       - name: Upload asset to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v${{ env.VERSION }}"
+          tag_name: "v${{needs.platform_interface_publish.outputs.version}}"
           files: "./zstandard_windows.zip"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Handle job completion
         if: always()
+        working-directory: zstandard_platform_interface
         shell: cmd
+        env:
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          CHAT_KEY: ${{ secrets.CHAT_KEY }}
+          REPO: ${{ github.repository }}
+          JOB_STATUS: ${{ job.status }}
         run: |
-          if "%{{ job.status }}" == "failure" (
+          for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
+          echo The VERSION is: %VERSION%
+          if "%JOB_STATUS%" == "failure" (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🔴 Publish - Windows Failed" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
               --text_color "#FFFFFFFF"
-          ) else if "%{{ job.status }}" == "cancelled" (
+          ) else if "%JOB_STATUS%" == "cancelled" (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🟠 Publish - Windows Canceled" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
               --text_color "#FFFFFFFF"
           ) else (
             landa-messenger-api chat-send ^
-              --id "%{{ secrets.CHAT_ID }}" ^
-              --api_key "%{{ secrets.CHAT_KEY }}" ^
+              --id "%CHAT_ID%" ^
+              --api_key "%CHAT_KEY%" ^
               --title "🟢 Publish - Windows Passed" ^
-              --body "%{{ github.repository }}: Tag v%{{ env.VERSION }}" ^
+              --body "%REPO%: v%VERSION%" ^
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" ^
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" ^
               --background_color "#55000000" ^
@@ -1641,7 +1676,7 @@ jobs:
   linux_publish:
     name: Publish Linux
     runs-on: [self-hosted, Linux]
-    needs: [linux_analyze, linux_test, linux_publish_dry_run]
+    needs: [platform_interface_publish, linux_analyze, linux_test, linux_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
 
@@ -1928,7 +1963,7 @@ jobs:
   web_publish:
     name: Publish Web
     runs-on: [self-hosted, macOS]
-    needs: [web_analyze, web_test, web_publish_dry_run]
+    needs: [platform_interface_publish, web_analyze, web_test, web_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
 
@@ -2218,7 +2253,7 @@ jobs:
   cli_publish:
     name: Publish CLI
     runs-on: [self-hosted, macOS]
-    needs: [cli_analyze, cli_test, cli_publish_dry_run]
+    needs: [platform_interface_publish, cli_analyze, cli_test, cli_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
 
@@ -2554,7 +2589,7 @@ jobs:
   zstandard_publish:
     name: Publish Zstandard
     runs-on: [self-hosted, macOS]
-    needs: [zstandard_analyze, zstandard_test, zstandard_publish_dry_run]
+    needs: [platform_interface_publish, zstandard_analyze, zstandard_test, zstandard_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
 

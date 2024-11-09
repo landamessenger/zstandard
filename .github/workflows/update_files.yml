@@ -12,243 +12,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cli_build_macos_precompiled_libs:
-    if: github.event.pull_request.merged == true
-    name: macOS precompiled libraries
-    runs-on: [ self-hosted, macOS ]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Switch to SSH
-        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
-        id: read_version
-        run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Download source files from facebook/zstd
-        run: |
-          cd zstandard_cli
-          git clone https://github.com/facebook/zstd.git
-          mkdir src
-          mv zstd/lib/* src/
-          rm -rf zstd/
-
-      - name: List files in zstd/lib to verify
-        run: cd zstandard_cli && ls -R src
-
-      - name: Compile x86-x64 macos lib
-        run: |
-          cd zstandard_cli/builders/macos_intel
-          mkdir build && cd build
-          cmake ..
-          cmake --build . --config Release
-          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_intel.dylib
-          cd ..
-          rm -rf build
-
-      - name: Compile arm64 macos lib
-        run: |
-          cd zstandard_cli/builders/macos_arm
-          mkdir build && cd build
-          cmake -DCMAKE_OSX_ARCHITECTURES=arm64 ..
-          cmake --build . --config Release
-          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_arm.dylib
-          cd ..
-          rm -rf build
-
-      - name: Join libs
-        run: |
-          cd zstandard_cli/lib/src/bin
-          lipo -create -output libzstandard_macos.dylib libzstandard_macos_intel.dylib libzstandard_macos_arm.dylib
-          rm libzstandard_macos_arm.dylib
-          rm libzstandard_macos_intel.dylib
-
-      - name: Verify libs
-        run: |
-          cd zstandard_cli/lib/src/bin
-          lipo -info libzstandard_macos.dylib
-
-      - name: Git pull --no-ff
-        run: |
-          git pull --no-ff origin master
-
-      - name: Commit and Push Library
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: './zstandard_cli/lib/src/bin/libzstandard_macos.dylib'
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
-          default_author: user_info
-          message: 'gh-action: Add precompiled macOS libraries for x86_64 and arm64'
-  cli_build_linux_precompiled_libs:
-    if: github.event.pull_request.merged == true
-    name: Linux precompiled libraries
-    runs-on: [ self-hosted, Linux ]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Switch to SSH
-        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
-
-      - name: Install Landa Messenger CLI
-        run: npm install @landamessenger/landa-messenger-api -g
-
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
-        id: read_version
-        run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Download source files from facebook/zstd
-        run: |
-          cd zstandard_cli
-          git clone https://github.com/facebook/zstd.git
-          mkdir src
-          mv zstd/lib/* src/
-          rm -rf zstd/
-
-      - name: List files in zstd/lib to verify
-        run: cd zstandard_cli && ls -R src
-
-      - name: Compile x86_64 Linux lib
-        run: |
-          cd zstandard_cli/builders/linux_x64
-          mkdir build && cd build
-          cmake ..
-          cmake --build . --config Release
-          mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_x64.so
-          cd ..
-          rm -rf build
-
-      - name: Compile arm64 Linux lib
-        run: |
-          cd zstandard_cli/builders/linux_arm
-          mkdir build && cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE=../arm64-toolchain.cmake ..
-          cmake --build . --config Release
-          mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_arm64.so
-          cd ..
-          rm -rf build
-
-      - name: Verify Linux libs
-        run: |
-          cd zstandard_cli/lib/src/bin
-          file libzstandard_linux_x64.so
-          file libzstandard_linux_arm64.so
-
-      - name: Git pull --no-ff
-        run: |
-          git pull --no-ff origin master
-
-      - name: Commit and Push Library
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: './zstandard_cli/lib/src/bin/'
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
-          default_author: user_info
-          message: 'gh-action: Add precompiled Linux libraries for x86_64 and arm64'
-  cli_build_windows_precompiled_libs:
-    if: github.event.pull_request.merged == true
-    name: Windows precompiled libraries
-    runs-on: [ self-hosted, Windows ]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Switch to SSH
-        shell: cmd
-        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
-
-      - name: Install Landa Messenger CLI
-        shell: cmd
-        run: npm install -g @landamessenger/landa-messenger-api
-
-      - name: Download source files from facebook/zstd
-        shell: cmd
-        run: |
-          cd zstandard_cli
-          git clone https://github.com/facebook/zstd.git
-          mkdir src
-          xcopy zstd\lib src\ /E /I
-          rmdir /S /Q zstd
-
-      - name: List files in zstd/lib to verify
-        shell: cmd
-        run: dir zstandard_cli\src /S
-
-      - name: Compile x86_64 Windows lib
-        shell: cmd
-        run: |
-          cd zstandard_cli/builders/windows_x64
-          mkdir build && cd build
-          cmake -G "Visual Studio 17 2022" -A x64 ..
-          cmake --build . --config Release
-          cd Release
-          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_x64.dll
-          cd ..
-          cd ..
-          rmdir /S /Q build
-
-      - name: Compile arm64 Windows lib
-        shell: cmd
-        run: |
-          cd zstandard_cli/builders/windows_arm
-          mkdir build && cd build
-          cmake -G "Visual Studio 17 2022" -A ARM64 ..
-          cmake --build . --config Release
-          cd Release
-          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_arm64.dll
-          cd ..
-          cd ..
-          rmdir /S /Q build
-
-      - name: Verify Windows libs architecture
-        shell: cmd
-        run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" amd64
-          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_x64.dll | findstr /c:"machine"
-          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_arm64.dll | findstr /c:"machine"
-
-      - name: Git pull --no-ff
-        shell: cmd
-        run: |
-          git pull --no-ff origin master
-
-      - name: Commit and Push Library
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: './zstandard_cli/lib/src/bin/'
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
-          default_author: user_info
-          message: 'gh-action: Add precompiled Windows libraries for x86_64 and arm64'
   update_files:
     if: github.event.pull_request.merged == true
     name: Update files job
     runs-on: [ self-hosted, macOS ]
+    outputs:
+      version: ${{ steps.read_version.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v4
 
@@ -269,6 +38,7 @@ jobs:
         run: |
           VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Pre check tag
         id: pre_check_tag
@@ -397,11 +167,10 @@ jobs:
               --background_color "#55000000" \
               --text_color "#FFFFFFFF"
           fi
-
-  tag_version:
-    name: Tag version and create release
+  cli_build_macos_precompiled_libs:
+    name: macOS precompiled libraries
     runs-on: [ self-hosted, macOS ]
-    needs: [update_files, cli_build_windows_precompiled_libs, cli_build_linux_precompiled_libs, cli_build_macos_precompiled_libs]
+    needs: [update_files]
     steps:
       - uses: actions/checkout@v4
 
@@ -423,23 +192,249 @@ jobs:
           VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: Download source files from facebook/zstd
+        run: |
+          cd zstandard_cli
+          git clone https://github.com/facebook/zstd.git
+          mkdir src
+          mv zstd/lib/* src/
+          rm -rf zstd/
+
+      - name: List files in zstd/lib to verify
+        run: cd zstandard_cli && ls -R src
+
+      - name: Compile x86-x64 macos lib
+        run: |
+          cd zstandard_cli/builders/macos_intel
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --config Release
+          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_intel.dylib
+          cd ..
+          rm -rf build
+
+      - name: Compile arm64 macos lib
+        run: |
+          cd zstandard_cli/builders/macos_arm
+          mkdir build && cd build
+          cmake -DCMAKE_OSX_ARCHITECTURES=arm64 ..
+          cmake --build . --config Release
+          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_arm.dylib
+          cd ..
+          rm -rf build
+
+      - name: Join libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          lipo -create -output libzstandard_macos.dylib libzstandard_macos_intel.dylib libzstandard_macos_arm.dylib
+          rm libzstandard_macos_arm.dylib
+          rm libzstandard_macos_intel.dylib
+
+      - name: Verify libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          lipo -info libzstandard_macos.dylib
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin master
+
+      - name: Commit and Push Library
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/libzstandard_macos.dylib'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled macOS libraries for x86_64 and arm64'
+  cli_build_linux_precompiled_libs:
+    name: Linux precompiled libraries
+    runs-on: [ self-hosted, Linux ]
+    needs: [ update_files ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Switch to SSH
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
+      - name: Read version from pubspec.yml
+        working-directory: zstandard_platform_interface
+        id: read_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Download source files from facebook/zstd
+        run: |
+          cd zstandard_cli
+          git clone https://github.com/facebook/zstd.git
+          mkdir src
+          mv zstd/lib/* src/
+          rm -rf zstd/
+
+      - name: List files in zstd/lib to verify
+        run: cd zstandard_cli && ls -R src
+
+      - name: Compile x86_64 Linux lib
+        run: |
+          cd zstandard_cli/builders/linux_x64
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --config Release
+          mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_x64.so
+          cd ..
+          rm -rf build
+
+      - name: Compile arm64 Linux lib
+        run: |
+          cd zstandard_cli/builders/linux_arm
+          mkdir build && cd build
+          cmake -DCMAKE_TOOLCHAIN_FILE=../arm64-toolchain.cmake ..
+          cmake --build . --config Release
+          mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_arm64.so
+          cd ..
+          rm -rf build
+
+      - name: Verify Linux libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          file libzstandard_linux_x64.so
+          file libzstandard_linux_arm64.so
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin master
+
+      - name: Commit and Push Library
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled Linux libraries for x86_64 and arm64'
+  cli_build_windows_precompiled_libs:
+    name: Windows precompiled libraries
+    runs-on: [ self-hosted, Windows ]
+    needs: [ update_files ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Switch to SSH
+        shell: cmd
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
+      - name: Install Landa Messenger CLI
+        shell: cmd
+        run: npm install -g @landamessenger/landa-messenger-api
+
+      - name: Download source files from facebook/zstd
+        shell: cmd
+        run: |
+          cd zstandard_cli
+          git clone https://github.com/facebook/zstd.git
+          mkdir src
+          xcopy zstd\lib src\ /E /I
+          rmdir /S /Q zstd
+
+      - name: List files in zstd/lib to verify
+        shell: cmd
+        run: dir zstandard_cli\src /S
+
+      - name: Compile x86_64 Windows lib
+        shell: cmd
+        run: |
+          cd zstandard_cli/builders/windows_x64
+          mkdir build && cd build
+          cmake -G "Visual Studio 17 2022" -A x64 ..
+          cmake --build . --config Release
+          cd Release
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_x64.dll
+          cd ..
+          cd ..
+          rmdir /S /Q build
+
+      - name: Compile arm64 Windows lib
+        shell: cmd
+        run: |
+          cd zstandard_cli/builders/windows_arm
+          mkdir build && cd build
+          cmake -G "Visual Studio 17 2022" -A ARM64 ..
+          cmake --build . --config Release
+          cd Release
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_arm64.dll
+          cd ..
+          cd ..
+          rmdir /S /Q build
+
+      - name: Verify Windows libs architecture
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" amd64
+          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_x64.dll | findstr /c:"machine"
+          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_arm64.dll | findstr /c:"machine"
+
+      - name: Git pull --no-ff
+        shell: cmd
+        run: |
+          git pull --no-ff origin master
+
+      - name: Commit and Push Library
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled Windows libraries for x86_64 and arm64'
+  tag_version:
+    name: Tag version and create release
+    runs-on: [ self-hosted, macOS ]
+    needs: [update_files, cli_build_windows_precompiled_libs, cli_build_linux_precompiled_libs, cli_build_macos_precompiled_libs]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Switch to SSH
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
+      - name: Install Landa Messenger CLI
+        run: npm install @landamessenger/landa-messenger-api -g
+
       - name: Create tag
         id: create_tag
         run: |
           # Check if the tag already exists in the remote repository
           if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
-          echo "Tag v${{ env.VERSION }} already exists."
+          echo "Tag v${{needs.update_files.outputs.version}} already exists."
           else
           # Create and push the new tag
-          git tag "v${{ env.VERSION }}"
-          git push origin "v${{ env.VERSION }}"
+          git tag "v${{needs.update_files.outputs.version}}"
+          git push origin "v${{needs.update_files.outputs.version}}"
           fi
 
       - name: Create release
         if: ${{ steps.create_tag.outcome == 'success' }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v${{ env.VERSION }}"
+          tag_name: "v${{needs.update_files.outputs.version}}"
           name: "${{ github.event.pull_request.title }}"
           body: "${{ github.event.pull_request.body }}"
         env:
@@ -453,7 +448,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🔴 Creation Tag Failed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}: Tag v${{needs.update_files.outputs.version}}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -463,7 +458,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟠 Creation Tag Canceled" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}: Tag v${{needs.update_files.outputs.version}}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
@@ -473,7 +468,7 @@ jobs:
               --id "${{ secrets.CHAT_ID }}" \
               --api_key "${{ secrets.CHAT_KEY }}" \
               --title "🟢 Creation Tag Passed" \
-              --body "${{ github.repository }}: Tag v${{ env.VERSION }}" \
+              --body "${{ github.repository }}: Tag v${{needs.update_files.outputs.version}}" \
               --url "https://github.com/landamessenger/zstandard/actions/workflows/tag_version_and_publish.yml" \
               --image "https://avatars.githubusercontent.com/u/63705403?s=200&v=4" \
               --background_color "#55000000" \
