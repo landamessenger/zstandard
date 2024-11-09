@@ -1,4 +1,4 @@
-## 1.3.26
+## 1.3.27
 
 * Fixed decompression size.
 * Added [CLI](https://pub.dev/packages/zstandard_cli) support.
