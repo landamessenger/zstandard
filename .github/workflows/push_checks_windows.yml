@@ -47,7 +47,6 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           CHAT_KEY: ${{ secrets.CHAT_KEY }}
           REPO: ${{ github.repository }}
-          VERSION: ${{ steps.read_version.outputs.version }}
           JOB_STATUS: ${{ job.status }}
         run: |
           for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
@@ -118,14 +117,16 @@ jobs:
 
       - name: Handle job completion
         if: always()
+        working-directory: zstandard_platform_interface
         shell: cmd
         env:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           CHAT_KEY: ${{ secrets.CHAT_KEY }}
           REPO: ${{ github.repository }}
-          VERSION: ${{ env.VERSION }}
           JOB_STATUS: ${{ job.status }}
         run: |
+          for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
+          echo The VERSION is: %VERSION%
           if "%JOB_STATUS%" == "failure" (
             landa-messenger-api chat-send ^
               --id "%CHAT_ID%" ^
@@ -192,14 +193,16 @@ jobs:
 
       - name: Handle job completion
         if: always()
+        working-directory: zstandard_platform_interface
         shell: cmd
         env:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           CHAT_KEY: ${{ secrets.CHAT_KEY }}
           REPO: ${{ github.repository }}
-          VERSION: ${{ env.VERSION }}
           JOB_STATUS: ${{ job.status }}
         run: |
+          for /f "tokens=2 delims=: " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
+          echo The VERSION is: %VERSION%
           if "%JOB_STATUS%" == "failure" (
             landa-messenger-api chat-send ^
               --id "%CHAT_ID%" ^
