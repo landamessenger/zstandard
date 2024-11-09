@@ -41,6 +41,7 @@ jobs:
 
       - name: Handle job completion
         if: always()
+        working-directory: zstandard_platform_interface
         shell: cmd
         env:
           CHAT_ID: ${{ secrets.CHAT_ID }}
