@@ -11,8 +11,6 @@ This repository contains a federated Flutter plugin and a CLI package for `zstan
 
 - **[zstandard_cli](https://pub.dev/packages/zstandard_cli):** A pure Dart package providing CLI capabilities for macOS, Windows, and Linux. It enables command-line compression and decompression for data files and streams.
 
-> **Note:** The `zstandard` plugin is designed for use in Flutter applications. For pure Dart applications or CLI usage, refer to the `zstandard_cli` package.
-
 ---
 
 ## Compatibility
@@ -25,7 +23,7 @@ This repository contains a federated Flutter plugin and a CLI package for `zstan
 
 |             | [macOS](https://flutter.dev/desktop) | [Windows](https://flutter.dev/desktop) | [Linux](https://flutter.dev/desktop) |
 |:-----------:|:------------------------------------:|:--------------------------------------:|:------------------------------------:|
-|     CLI     |          :heavy_check_mark:          |           :heavy_check_mark:           |          :heavy_check_mark:          |
+|     x64     |          :heavy_check_mark:          |           :heavy_check_mark:           |          :heavy_check_mark:          |
 |    arm64    |      :heavy_check_mark:              |           :heavy_check_mark:           |       :heavy_check_mark:             |
 | Precompiled |                 Yes                  |                  Yes                   |                 Yes                  |
 
