@@ -1,9 +1,10 @@
-import 'dart:js' as js;
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_web_plugins/flutter_web_plugins.dart' show Registrar;
-import 'package:web/web.dart' as html;
+import 'package:web/web.dart' as web;
 import 'package:zstandard_platform_interface/zstandard_platform_interface.dart';
 
 export 'zstandard_ext.dart';
@@ -13,7 +14,7 @@ export 'zstandard_ext.dart';
 /// This class implements the `package:zstandard` functionality for the web.
 class ZstandardWeb extends ZstandardPlatform {
   /// A constructor that allows tests to override the window object used by the plugin.
-  ZstandardWeb({@visibleForTesting html.Window? debugWindow});
+  ZstandardWeb({@visibleForTesting web.Window? debugWindow});
 
   /// Registers this class as the default instance of [ZstandardPlatformInterface].
   static void registerWith(Registrar registrar) {
@@ -22,16 +23,19 @@ class ZstandardWeb extends ZstandardPlatform {
 
   @override
   Future<String?> getPlatformVersion() async {
-    final version = html.window.navigator.userAgent;
+    final version = web.window.navigator.userAgent;
     return version;
   }
 
   @override
   Future<Uint8List?> compress(Uint8List data, int compressionLevel) async {
     if (data.length < 9) return data;
-    var compressedData = js.context.callMethod('compressData', [data, compressionLevel]);
+    var compressedData = web.window.callMethodVarArgs('compressData'.toJS, [
+      data.toJS,
+      compressionLevel.toJS,
+    ]) as JSUint8Array?;
     if (compressedData != null) {
-      return Uint8List.fromList(List<int>.from(compressedData));
+      return compressedData.toDart;
     } else {
       throw Exception("Error compressing.");
     }
@@ -40,9 +44,11 @@ class ZstandardWeb extends ZstandardPlatform {
   @override
   Future<Uint8List?> decompress(Uint8List data) async {
     if (data.length < 9) return data;
-    var decompressedData = js.context.callMethod('decompressData', [data]);
+    var decompressedData = web.window.callMethodVarArgs('decompressData'.toJS, [
+      data.toJS,
+    ]) as JSUint8Array?;
     if (decompressedData != null) {
-      return Uint8List.fromList(List<int>.from(decompressedData));
+      return decompressedData.toDart;
     } else {
       throw Exception("Error decompressing.");
     }
