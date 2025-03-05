@@ -1,4 +1,4 @@
-name: ⚠️ Bug Report
+name: 🐛 Bug Report
 description: Report a bug on Zstandard
 title: "[PLUGIN_PLATFORM_HERE]: <YOUR TITLE HERE>"
 labels: ["Needs Attention", "type: bug"]
@@ -40,9 +40,10 @@ body:
       options:
         - Android
         - iOS
-        - macOS
         - Web
+        - macOS
         - Windows
+        - Linux
 
   - type: markdown
     attributes:
