@@ -36,7 +36,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -105,7 +105,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -174,7 +174,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -246,7 +246,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -346,7 +346,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -415,7 +415,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -484,7 +484,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -553,7 +553,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -633,7 +633,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -702,7 +702,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -771,7 +771,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -840,7 +840,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -920,7 +920,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_macos
@@ -989,7 +989,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Test check
         working-directory: zstandard_macos
@@ -1054,7 +1054,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_macos
@@ -1123,7 +1123,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_macos
@@ -1491,7 +1491,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -1560,7 +1560,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -1629,7 +1629,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -1698,7 +1698,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -1778,7 +1778,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -1847,7 +1847,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -1916,7 +1916,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -1985,7 +1985,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -2065,7 +2065,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_cli
@@ -2134,7 +2134,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_cli
@@ -2206,7 +2206,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_cli
@@ -2275,7 +2275,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard_cli
@@ -2356,7 +2356,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Wait for dependency to be available
         uses: nick-fields/retry@v3
@@ -2441,7 +2441,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Wait for dependency to be available
         uses: nick-fields/retry@v3
@@ -2526,7 +2526,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Wait for dependency to be available
         uses: nick-fields/retry@v3
@@ -2611,7 +2611,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.24.3'
+          flutter-version: '3.35.6'
 
       - name: Get dependencies
         working-directory: zstandard
