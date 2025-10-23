@@ -15,5 +15,6 @@ cd ios && pod install --repo-update
 cd ..
 
 echo "🚀 Running Flutter app..."
+flutter build ios --debug --verbose
 
 flutter run -d "iPhone 16e" -v --verbose

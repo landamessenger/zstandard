@@ -15,16 +15,132 @@ const String _libName = 'zstandard_ios';
 
 final DynamicLibrary _dylib = () {
   if (Platform.isIOS) {
-    return DynamicLibrary.open('$_libName.framework/$_libName');
+    print(
+        '🔍 [ZSTD] Attempting to load library: $_libName.framework/$_libName');
+    try {
+      final lib = DynamicLibrary.open('$_libName.framework/$_libName');
+      print('✅ [ZSTD] Library loaded successfully');
+
+      // Test if we can find some basic symbols
+      try {
+        lib.lookup<NativeFunction>('ZSTD_compressBound');
+        print('✅ [ZSTD] ZSTD_compressBound symbol found');
+      } catch (e) {
+        print('❌ [ZSTD] ZSTD_compressBound symbol NOT found: $e');
+      }
+
+      try {
+        lib.lookup<NativeFunction>('ZSTD_compress');
+        print('✅ [ZSTD] ZSTD_compress symbol found');
+      } catch (e) {
+        print('❌ [ZSTD] ZSTD_compress symbol NOT found: $e');
+      }
+
+      try {
+        lib.lookup<NativeFunction>('ZSTD_decompress');
+        print('✅ [ZSTD] ZSTD_decompress symbol found');
+      } catch (e) {
+        print('❌ [ZSTD] ZSTD_decompress symbol NOT found: $e');
+      }
+
+      return lib;
+    } catch (e) {
+      print('❌ [ZSTD] Failed to load library: $e');
+      rethrow;
+    }
   }
   throw UnsupportedError('Platform not supported: ${Platform.operatingSystem}');
 }();
 
 final ZstandardIosBindings _bindings = ZstandardIosBindings(_dylib);
 
+// Test function to verify symbols are available
+void _testZstdSymbols() {
+  print('🧪 [ZSTD] Testing symbol availability...');
+
+  // List all available symbols
+  _listAvailableSymbols();
+
+  try {
+    // Try to get the function directly from the library
+    final compressBoundFunc =
+        _dylib.lookupFunction<Int32 Function(Uint32), int Function(int)>(
+            'ZSTD_compressBound');
+    final result = compressBoundFunc(1024);
+    print('✅ [ZSTD] ZSTD_compressBound test successful: $result');
+  } catch (e) {
+    print('❌ [ZSTD] ZSTD_compressBound test failed: $e');
+  }
+
+  try {
+    // Try to get the compress function
+    _dylib.lookupFunction<
+        Int32 Function(Pointer<Void>, Int32, Pointer<Void>, Int32, Int32),
+        int Function(
+            Pointer<Void>, int, Pointer<Void>, int, int)>('ZSTD_compress');
+    print('✅ [ZSTD] ZSTD_compress function found');
+  } catch (e) {
+    print('❌ [ZSTD] ZSTD_compress function not found: $e');
+  }
+
+  try {
+    // Try to get the decompress function
+    _dylib.lookupFunction<
+        Int32 Function(Pointer<Void>, Int32, Pointer<Void>, Int32),
+        int Function(
+            Pointer<Void>, int, Pointer<Void>, int)>('ZSTD_decompress');
+    print('✅ [ZSTD] ZSTD_decompress function found');
+  } catch (e) {
+    print('❌ [ZSTD] ZSTD_decompress function not found: $e');
+  }
+}
+
+// Function to list available symbols in the library
+void _listAvailableSymbols() {
+  print('🔍 [ZSTD] Listing available symbols...');
+
+  // Common ZSTD symbols to test
+  final List<String> zstdSymbols = [
+    'sum',
+    'sum_long_running',
+    'ZDICT_finalizeDictionary',
+    'ZSTD_getDecompressedSize',
+    'ZSTD_compressBound',
+    'ZSTD_compress',
+    'ZSTD_decompress',
+    'ZSTD_getDecompressedSize',
+    'ZSTD_versionNumber',
+    'ZSTD_versionString',
+    'ZSTD_isError',
+    'ZSTD_getErrorName',
+    'ZSTD_compress_usingDict',
+    'ZSTD_decompress_usingDict',
+    'ZSTD_createCCtx',
+    'ZSTD_freeCCtx',
+    'ZSTD_createDCtx',
+    'ZSTD_freeDCtx',
+  ];
+
+  int foundCount = 0;
+  for (final symbol in zstdSymbols) {
+    try {
+      _dylib.lookup<NativeFunction>(symbol);
+      print('✅ [ZSTD] Found symbol: $symbol');
+      foundCount++;
+    } catch (e) {
+      print('❌ [ZSTD] Missing symbol: $symbol');
+    }
+  }
+
+  print('📊 [ZSTD] Summary: $foundCount/${zstdSymbols.length} symbols found');
+}
+
 class ZstandardIOS extends ZstandardPlatform {
   /// A constructor that allows tests to override the window object used by the plugin.
-  ZstandardIOS();
+  ZstandardIOS() {
+    // Test symbols when the class is instantiated
+    _testZstdSymbols();
+  }
 
   final methodChannel = const MethodChannel('plugins.flutter.io/zstandard');
 
