@@ -20,11 +20,12 @@ function compressData(inputData, compressionLevel) {
         return null;
     } else {
         let compressedData = new Uint8Array(Module.HEAPU8.buffer, outputPtr, compressedSize);
+        let out = compressedData.slice(0);
 
         Module._free(inputPtr);
         Module._free(outputPtr);
 
-        return compressedData;
+        return out;
     }
 }
 
@@ -55,10 +56,11 @@ function decompressData(compressedData) {
         return null;
     } else {
         let decompressedData = new Uint8Array(Module.HEAPU8.buffer, decompressedPtr, resultSize);
+        let out = decompressedData.slice(0);
 
         Module._free(compressedPtr);
         Module._free(decompressedPtr);
 
-        return decompressedData;
+        return out;
     }
 }
