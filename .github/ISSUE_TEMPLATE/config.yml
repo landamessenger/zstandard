@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Facebook Documentation
+    url: https://github.com/facebook/zstd
+    about: Check the official zstd documentation before opening new issues.
+  - name: Plugin Documentation
+    url: https://github.com/landamessenger/zstandard/wiki
+    about: Check the plugin/cli documentation before opening new issues.
