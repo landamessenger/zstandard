@@ -239,6 +239,11 @@ jobs:
       - name: List files in zstd/lib to verify
         run: cd zstandard_cli && ls -R src
 
+      - name: Install ARM64 cross-compilation toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
       - name: Compile x86_64 Linux lib
         run: |
           cd zstandard_cli/builders/linux_x64
