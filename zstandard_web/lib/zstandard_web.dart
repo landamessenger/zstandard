@@ -1,4 +1,5 @@
-import 'dart:js' as js;
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -29,9 +30,12 @@ class ZstandardWeb extends ZstandardPlatform {
   @override
   Future<Uint8List?> compress(Uint8List data, int compressionLevel) async {
     if (data.length < 9) return data;
-    var compressedData = js.context.callMethod('compressData', [data, compressionLevel]);
+    var compressedData = html.window.callMethodVarArgs('compressData'.toJS, [
+      data.toJS,
+      compressionLevel.toJS,
+    ]) as JSUint8Array?;
     if (compressedData != null) {
-      return Uint8List.fromList(List<int>.from(compressedData));
+      return compressedData.toDart;
     } else {
       throw Exception("Error compressing.");
     }
@@ -40,9 +44,12 @@ class ZstandardWeb extends ZstandardPlatform {
   @override
   Future<Uint8List?> decompress(Uint8List data) async {
     if (data.length < 9) return data;
-    var decompressedData = js.context.callMethod('decompressData', [data]);
+    var decompressedData =
+        html.window.callMethodVarArgs('decompressData'.toJS, [
+      data.toJS,
+    ]) as JSUint8Array?;
     if (decompressedData != null) {
-      return Uint8List.fromList(List<int>.from(decompressedData));
+      return decompressedData.toDart;
     } else {
       throw Exception("Error decompressing.");
     }

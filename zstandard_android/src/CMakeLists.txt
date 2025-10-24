@@ -35,3 +35,8 @@ set_target_properties(zstandard_android PROPERTIES
 )
 
 target_compile_definitions(zstandard_android PUBLIC DART_SHARED_LIB)
+
+# Support for 16KB page size alignment (Android 15+)
+if(ANDROID)
+    target_link_options(zstandard_android PRIVATE "-Wl,-z,max-page-size=16384")
+endif()

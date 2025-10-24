@@ -16,10 +16,7 @@ file(GLOB ZSTD_SRC
 add_library(zstandard_ios SHARED
         # "Classes/plugin_code.cpp"
         ${ZSTD_SRC}
-)
-
-add_library(zstandard_ios SHARED
-  "zstandard_ios.c"
+        "Classes/zstandard_ios.c"
 )
 
 target_include_directories(zstandard_ios PUBLIC

@@ -29,3 +29,7 @@ migrate_working_dir/
 .dart_tool/
 build/
 .metadata
+
+./example/windows/flutter/generated_plugin_registrant.cc
+./example/windows/flutter/generated_plugin_registrant.h
+./example/windows/flutter/generated_plugins.cmake

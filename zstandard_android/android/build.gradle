@@ -72,5 +72,13 @@ android {
 
     defaultConfig {
         minSdk = 21
+
+        // Support 16KB page size for Android 15+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-fmax-page-size=16384"
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
     }
 }
