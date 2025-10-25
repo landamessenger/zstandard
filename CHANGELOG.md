@@ -1,7 +1,3 @@
-## 1.3.29
-
-* Testing desploy
-
 ## 1.3.27
 
 * Fixed decompression size.
