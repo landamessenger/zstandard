@@ -25,178 +25,311 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prepare-version-files:
-    name: Prepare files for release
-    runs-on: ubuntu-latest
+  update_files:
+    name: Update files job
+    runs-on: [ self-hosted, macOS ]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Update version
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));        
-            packageJson.version = '${{ github.event.inputs.version }}';
-            fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2));
+      - name: Switch to SSH
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
-      - name: Commit updated package.json and dist directory
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: './build/ ./package.json'
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
-          default_author: user_info
-          message: 'gh-action: updated compiled files and bumped version to ${{ github.event.inputs.version }}'
-
-  prepare-files-common:
-    name: Update common compiled files
-    runs-on: ubuntu-latest
-    needs: prepare-version-files
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Pull latest changes
+      - name: Pre check tag
+        id: pre_check_tag
         run: |
-          git config --global user.email "efraespada@gmail.com"
-          git config --global user.name "Efra Espada"
-          git pull --no-ff --no-edit
+          # Checks if the tag already exists in the remote repository
+          if git rev-parse "v${{ github.event.inputs.version }}" >/dev/null 2>&1; then
+            echo "Error: Tag v${{ github.event.inputs.version }} already exists."
+            exit 1
+          fi
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
+          # Check if the version was found
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "Error: No version found"
+            exit 1
+          fi  
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Copy CHANGELOG.md
+        run: |
+          cp CHANGELOG.md "zstandard_platform_interface/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_android/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_ios/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_macos/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_windows/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_linux/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_web/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_cli/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard/CHANGELOG.md"
 
-      - name: Build Common Platform Files
-        run: npm run build-common
+      - name: Update version in zstandard_android pubspec.yaml
+        working-directory: zstandard_android
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ github.event.inputs.version }}/" pubspec.yaml
 
-      - name: Force add build directory
-        run: git add -f ./build/
+      - name: Update version in zstandard_ios pubspec.yaml
+        working-directory: zstandard_ios
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ github.event.inputs.version }}/" pubspec.yaml
 
-      - name: Commit updated dist directory
+      - name: Update version in zstandard_macos pubspec.yaml
+        working-directory: zstandard_macos
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ github.event.inputs.version }}/" pubspec.yaml
+
+      - name: Update version in zstandard_linux pubspec.yaml
+        working-directory: zstandard_linux
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ github.event.inputs.version }}/" pubspec.yaml
+
+      - name: Update version in zstandard_windows pubspec.yaml
+        working-directory: zstandard_windows
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ github.event.inputs.version }}/" pubspec.yaml
+
+      - name: Update version in zstandard_web pubspec.yaml
+        working-directory: zstandard_web
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ github.event.inputs.version }}/" pubspec.yaml
+
+      - name: Update version in zstandard pubspec.yaml
+        working-directory: zstandard
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_platform_interface: .*/  zstandard_platform_interface: ^${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_android: .*/  zstandard_android: ^${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_ios: .*/  zstandard_ios: ^${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_web: .*/  zstandard_web: ^${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_macos: .*/  zstandard_macos: ^${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_windows: .*/  zstandard_windows: ^${{ github.event.inputs.version }}/" pubspec.yaml
+          sed -i '' "s/^  zstandard_linux: .*/  zstandard_linux: ^${{ github.event.inputs.version }}/" pubspec.yaml
+
+      - name: Update version in zstandard_cli pubspec.yaml
+        working-directory: zstandard_cli
+        run: |
+          sed -i '' "s/^version:.*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin master
+
+      - name: Commit and Push version updates
         uses: EndBug/add-and-commit@v9
         with:
           committer_name: GitHub Actions
           committer_email: actions@github.com
           default_author: user_info
-          message: 'gh-action: updated common compiled files'
+          message: 'gh-action: Bump dependencies version to ${{ github.event.inputs.version }}'
 
-  prepare-files-linux-x64:
-    name: Update Linux x64 compiled files
-    runs-on: ubuntu-latest
-    needs: prepare-files-common
+  cli_build_macos_precompiled_libs:
+    name: macOS precompiled libraries
+    runs-on: [ self-hosted, macOS ]
+    needs: [update_files]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Pull latest changes
+      - name: Switch to SSH
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
+      - name: Download source files from facebook/zstd
         run: |
-          git config --global user.email "efraespada@gmail.com"
-          git config --global user.name "Efra Espada"
-          git pull --no-ff --no-edit
+          cd zstandard_cli
+          git clone https://github.com/facebook/zstd.git
+          mkdir src
+          mv zstd/lib/* src/
+          rm -rf zstd/
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
+      - name: List files in zstd/lib to verify
+        run: cd zstandard_cli && ls -R src
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Compile x86-x64 macos lib
+        run: |
+          cd zstandard_cli/builders/macos_intel
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --config Release
+          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_intel.dylib
+          cd ..
+          rm -rf build
 
-      - name: Build Linux Files
-        run: npm run build-linux-x64
+      - name: Compile arm64 macos lib
+        run: |
+          cd zstandard_cli/builders/macos_arm
+          mkdir build && cd build
+          cmake -DCMAKE_OSX_ARCHITECTURES=arm64 ..
+          cmake --build . --config Release
+          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_arm.dylib
+          cd ..
+          rm -rf build
 
-      - name: Force add build directory
-        run: git add -f ./build/
+      - name: Join libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          lipo -create -output libzstandard_macos.dylib libzstandard_macos_intel.dylib libzstandard_macos_arm.dylib
+          rm libzstandard_macos_arm.dylib
+          rm libzstandard_macos_intel.dylib
 
-      - name: Commit updated dist directory
+      - name: Verify libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          lipo -info libzstandard_macos.dylib
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin master
+
+      - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
         with:
+          add: './zstandard_cli/lib/src/bin/libzstandard_macos.dylib'
           committer_name: GitHub Actions
           committer_email: actions@github.com
           default_author: user_info
-          message: 'gh-action: updated linux x64 compiled files'
-
-
-  prepare-files-macos-x64:
-    name: Update MacOS x64 compiled files
-    runs-on: [self-hosted, macOS, X64]
-    needs: prepare-files-linux-x64
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Pull latest changes
-        run: |
-          git config --global user.email "efraespada@gmail.com"
-          git config --global user.name "Efra Espada"
-          git pull --no-ff --no-edit
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build MacOS Files
-        run: npm run build-macos-x64
-
-      - name: Force add build directory
-        run: git add -f ./build/
-
-      - name: Commit updated dist directory
-        uses: EndBug/add-and-commit@v9
-        with:
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
-          default_author: user_info
-          message: 'gh-action: updated macos x64 compiled files'
+          message: 'gh-action: Add precompiled macOS libraries for x86_64 and arm64'
   
-  prepare-files-macos-arm64:
-    name: Update MacOS arm64 compiled files
-    runs-on: [self-hosted, macOS, ARM64]
-    needs: prepare-files-macos-x64
+  cli_build_linux_precompiled_libs:
+    name: Linux precompiled libraries
+    runs-on: [ self-hosted, Linux ]
+    needs: [ update_files ]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Pull latest changes
+      - name: Switch to SSH
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
+      - name: Download source files from facebook/zstd
         run: |
-          git config --global user.email "efraespada@gmail.com"
-          git config --global user.name "Efra Espada"
-          git pull --no-ff --no-edit
+          cd zstandard_cli
+          git clone https://github.com/facebook/zstd.git
+          mkdir src
+          mv zstd/lib/* src/
+          rm -rf zstd/
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
+      - name: List files in zstd/lib to verify
+        run: cd zstandard_cli && ls -R src
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Compile x86_64 Linux lib
+        run: |
+          cd zstandard_cli/builders/linux_x64
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --config Release
+          mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_x64.so
+          cd ..
+          rm -rf build
 
-      - name: Build MacOS Files
-        run: npm run build-macos-arm64
+      - name: Compile arm64 Linux lib
+        run: |
+          cd zstandard_cli/builders/linux_arm
+          mkdir build && cd build
+          cmake -DCMAKE_TOOLCHAIN_FILE=../arm64-toolchain.cmake ..
+          cmake --build . --config Release
+          mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_arm64.so
+          cd ..
+          rm -rf build
 
-      - name: Force add build directory
-        run: git add -f ./build/
+      - name: Verify Linux libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          file libzstandard_linux_x64.so
+          file libzstandard_linux_arm64.so
 
-      - name: Commit updated dist directory
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin master
+
+      - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
         with:
+          add: './zstandard_cli/lib/src/bin/'
           committer_name: GitHub Actions
           committer_email: actions@github.com
           default_author: user_info
-          message: 'gh-action: updated macos arm64 compiled files'
+          message: 'gh-action: Add precompiled Linux libraries for x86_64 and arm64'
+  
+  cli_build_windows_precompiled_libs:
+    name: Windows precompiled libraries
+    runs-on: [ self-hosted, Windows ]
+    needs: [ update_files ]
+    steps:
+      - uses: actions/checkout@v4
 
-  tag:
-    name: Publish version
-    runs-on: ubuntu-latest
-    needs: [ prepare-files-macos-arm64 ]
+      - name: Switch to SSH
+        shell: cmd
+        run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
+      - name: Download source files from facebook/zstd
+        shell: cmd
+        run: |
+          cd zstandard_cli
+          git clone https://github.com/facebook/zstd.git
+          mkdir src
+          xcopy zstd\lib src\ /E /I
+          rmdir /S /Q zstd
+
+      - name: List files in zstd/lib to verify
+        shell: cmd
+        run: dir zstandard_cli\src /S
+
+      - name: Compile x86_64 Windows lib
+        shell: cmd
+        run: |
+          cd zstandard_cli/builders/windows_x64
+          mkdir build && cd build
+          cmake -G "Visual Studio 17 2022" -A x64 ..
+          cmake --build . --config Release
+          cd Release
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_x64.dll
+          cd ..
+          cd ..
+          rmdir /S /Q build
+
+      - name: Compile arm64 Windows lib
+        shell: cmd
+        run: |
+          cd zstandard_cli/builders/windows_arm
+          mkdir build && cd build
+          cmake -G "Visual Studio 17 2022" -A ARM64 ..
+          cmake --build . --config Release
+          cd Release
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_arm64.dll
+          cd ..
+          cd ..
+          rmdir /S /Q build
+
+      - name: Verify Windows libs architecture
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_x64.dll | findstr /c:"machine"
+          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_arm64.dll | findstr /c:"machine"
+
+      - name: Git pull --no-ff
+        shell: cmd
+        run: |
+          git pull --no-ff origin master
+
+      - name: Commit and Push Library
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled Windows libraries for x86_64 and arm64'
+  
+  tag_version:
+    name: Tag version and create release
+    runs-on: [ self-hosted, macOS ]
+    needs: [update_files, cli_build_windows_precompiled_libs, cli_build_linux_precompiled_libs, cli_build_macos_precompiled_libs]
     steps:
       - name: Git Board Flow - Create Tag
-        uses: ./
+        uses: landamessenger/git-board-flow@v1
         if: ${{ success() }}
         with:
           debug: ${{ vars.DEBUG }}
@@ -206,7 +339,7 @@ jobs:
           token: ${{ secrets.PAT }}
   
       - name: Git Board Flow - Create Release
-        uses: ./
+        uses: landamessenger/git-board-flow@v1
         if: ${{ success() }}
         with:
           debug: ${{ vars.DEBUG }}
@@ -217,19 +350,836 @@ jobs:
           single-action-changelog: '${{ github.event.inputs.changelog }}'
           token: ${{ secrets.PAT }}
 
-      - name: Git Board Flow - Publish Github Action Version
-        uses: ./
-        if: ${{ success() }}
-        with:
-          debug: ${{ vars.DEBUG }}
-          single-action: 'publish_github_action'
-          single-action-issue: '${{ github.event.inputs.issue }}'
-          single-action-version: '${{ github.event.inputs.version }}'
-          token: ${{ secrets.PAT }}
+  platform_interface_analyze:
+    name: Analyze Platform Interface
+    runs-on: [self-hosted, macOS]
+    needs: [tag_version]
+    steps:
+      - uses: actions/checkout@v4
 
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_platform_interface
+        run: flutter pub get
+
+      - name: Analyze check
+        working-directory: zstandard_platform_interface
+        run: flutter analyze
+
+  platform_interface_test:
+    name: Test Platform Interface
+    runs-on: [self-hosted, macOS]
+    needs: [tag_version]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_platform_interface
+        run: flutter pub get
+
+      - name: Test check
+        working-directory: zstandard_platform_interface
+        run: flutter test
+
+  platform_interface_publish_dry_run:
+    name: Dry Run Publish Platform Interface
+    runs-on: [self-hosted, macOS]
+    needs: [tag_version]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_platform_interface
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_platform_interface
+        run: dart pub publish --dry-run
+
+  platform_interface_publish:
+    name: Publish Platform Interface
+    runs-on: [self-hosted, macOS]
+    needs: [platform_interface_analyze, platform_interface_test, platform_interface_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_platform_interface
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_platform_interface
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_platform_interface.zip ./zstandard_platform_interface
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_platform_interface.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_android && flutter pub get
+
+      - name: Wait a minute
+        run: sleep 120
+
+  android_analyze:
+    name: Analyze Android
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_android
+        run: flutter pub get
+
+      - name: Analyze check
+        working-directory: zstandard_android
+        run: flutter analyze
+
+  android_test:
+    name: Test Android
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_android
+        run: flutter pub get
+
+      - name: Test check
+        working-directory: zstandard_android
+        run: flutter test
+
+  android_publish_dry_run:
+    name: Dry Run Publish Android
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_android
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_android
+        run: dart pub publish --dry-run
+
+  android_publish:
+    name: Publish Android
+    runs-on: [self-hosted, macOS]
+    needs: [platform_interface_publish, android_analyze, android_test, android_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_android
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_android
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_android.zip ./zstandard_android
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_android.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ios_analyze:
+    name: Analyze iOS
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_ios
+        run: flutter pub get
+
+      - name: Analyze check
+        working-directory: zstandard_ios
+        run: flutter analyze
+
+  ios_test:
+    name: Test iOS
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_ios
+        run: flutter pub get
+
+      - name: Test check
+        working-directory: zstandard_ios
+        run: flutter test
+
+  ios_publish_dry_run:
+    name: Dry Run Publish iOS
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_ios
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_ios
+        run: dart pub publish --dry-run
+
+  ios_publish:
+    name: Publish iOS
+    runs-on: [self-hosted, macOS]
+    needs: [platform_interface_publish, ios_analyze, ios_test, ios_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_ios
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_ios
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_ios.zip ./zstandard_ios
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_ios.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos_analyze:
+    name: Analyze macOS
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_macos
+        run: flutter pub get
+
+      - name: Analyze check
+        working-directory: zstandard_macos
+        run: flutter analyze
+
+  macos_test:
+    name: Test macOS
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Test check
+        working-directory: zstandard_macos
+        run: flutter test
+
+  macos_publish_dry_run:
+    name: Dry Run Publish macOS
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_macos
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_macos
+        run: dart pub publish --dry-run
+
+  macos_publish:
+    name: Publish macOS
+    runs-on: [self-hosted, macOS]
+    needs: [platform_interface_publish, macos_analyze, macos_test, macos_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_macos
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_macos
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_macos.zip ./zstandard_macos
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_macos.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows_analyze:
+    name: Analyze Windows
+    runs-on: [self-hosted, Windows]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get dependencies
+        working-directory: zstandard_windows
+        shell: cmd
+        run: flutter pub get
+
+      - name: Analyze check
+        working-directory: zstandard_windows
+        shell: cmd
+        run: flutter analyze
+
+  windows_test:
+    name: Test Windows
+    runs-on: [self-hosted, Windows]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get dependencies
+        working-directory: zstandard_windows
+        shell: cmd
+        run: flutter pub get
+
+  windows_publish_dry_run:
+    name: Dry Run Publish Windows
+    runs-on: [self-hosted, Windows]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get dependencies
+        working-directory: zstandard_windows
+        shell: cmd
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_windows
+        shell: cmd
+        run: dart pub publish --dry-run
+
+  windows_publish:
+    name: Publish Windows
+    runs-on: [self-hosted, Windows]
+    needs: [platform_interface_publish, windows_analyze, windows_test, windows_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get dependencies
+        working-directory: zstandard_windows
+        shell: cmd
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_windows
+        shell: cmd
+        run: dart pub publish -f
+
+      - name: Compress folder
+        shell: cmd
+        run: tar -a -c -f zstandard_windows.zip zstandard_windows
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_windows.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  linux_analyze:
+    name: Analyze Linux
+    runs-on: [self-hosted, Linux]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_linux
+        run: flutter pub get
+
+      - name: Analyze check
+        working-directory: zstandard_linux
+        run: flutter analyze
+
+  linux_test:
+    name: Test Linux
+    runs-on: [self-hosted, Linux]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_linux
+        run: flutter pub get
+
+  linux_publish_dry_run:
+    name: Dry Run Publish Linux
+    runs-on: [self-hosted, Linux]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_linux
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_linux
+        run: dart pub publish --dry-run
+
+  linux_publish:
+    name: Publish Linux
+    runs-on: [self-hosted, Linux]
+    needs: [platform_interface_publish, linux_analyze, linux_test, linux_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_linux
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_linux
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_linux.zip ./zstandard_linux
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_linux.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  web_analyze:
+    name: Analyze Web
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_web
+        run: flutter pub get
+
+      - name: Analyze check
+        working-directory: zstandard_web
+        run: flutter analyze
+
+  web_test:
+    name: Test Web
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_web
+        run: flutter pub get
+
+      - name: Test check
+        working-directory: zstandard_web
+        run: flutter test
+
+  web_publish_dry_run:
+    name: Dry Run Publish Web
+    runs-on: [self-hosted, macOS]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_web
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_web
+        run: dart pub publish --dry-run
+
+  web_publish:
+    name: Publish Web
+    runs-on: [self-hosted, macOS]
+    needs: [platform_interface_publish, web_analyze, web_test, web_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_web
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_web
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_web.zip ./zstandard_web
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_web.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cli_analyze:
+    name: Analyze CLI
+    runs-on: [self-hosted, macOS]
+    needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_cli
+        run: dart pub get
+
+      - name: Analyze check
+        working-directory: zstandard_cli
+        run: dart analyze
+
+  cli_test:
+    name: Test CLI
+    runs-on: [self-hosted, macOS]
+    needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_cli
+        run: dart pub get
+
+      - name: Test check
+        working-directory: zstandard_cli
+        run: dart test
+
+  cli_publish_dry_run:
+    name: Dry Run Publish CLI
+    runs-on: [self-hosted, macOS]
+    needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_cli
+        run: dart pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_cli
+        run: dart pub publish --dry-run
+
+  cli_publish:
+    name: Publish CLI
+    runs-on: [self-hosted, macOS]
+    needs: [platform_interface_publish, cli_analyze, cli_test, cli_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard_cli
+        run: dart pub get
+
+      - name: Publish
+        working-directory: zstandard_cli
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_cli.zip ./zstandard_cli
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_cli.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  zstandard_analyze:
+    name: Analyze Zstandard
+    runs-on: [self-hosted, macOS]
+    needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard && flutter pub get
+
+      - name: Wait a minute
+        run: sleep 120
+
+      - name: Analyze check
+        working-directory: zstandard
+        run: flutter analyze
+
+  zstandard_test:
+    name: Test Zstandard
+    runs-on: [self-hosted, macOS]
+    needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard && flutter pub get
+
+      - name: Wait a minute
+        run: sleep 120
+
+      - name: Test check
+        working-directory: zstandard
+        run: flutter test
+
+  zstandard_publish_dry_run:
+    name: Dry Run Publish Zstandard
+    runs-on: [self-hosted, macOS]
+    needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard && flutter pub get
+
+      - name: Wait a minute
+        run: sleep 120
+
+      - name: Publish Dry Run
+        working-directory: zstandard
+        run: dart pub publish --dry-run
+
+  zstandard_publish:
+    name: Publish Zstandard
+    runs-on: [self-hosted, macOS]
+    needs: [platform_interface_publish, zstandard_analyze, zstandard_test, zstandard_publish_dry_run]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+
+      - name: Get dependencies
+        working-directory: zstandard
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard.zip ./zstandard
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify_deploy_completed:
+    name: Notify deploy completed
+    runs-on: [self-hosted, macOS]
+    needs: [ zstandard_publish ]
+    steps:
       - name: Git Board Flow - Deploy success notification
-        uses: ./
-        if: ${{ success() }}
+        uses: landamessenger/git-board-flow@v1
         with:
           debug: ${{ vars.DEBUG }}
           single-action: 'deployed_action'
