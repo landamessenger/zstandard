@@ -116,7 +116,7 @@ jobs:
 
       - name: Git pull --no-ff
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Commit and Push version updates
         uses: EndBug/add-and-commit@v9
@@ -181,7 +181,7 @@ jobs:
 
       - name: Git pull --no-ff
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
@@ -241,7 +241,7 @@ jobs:
 
       - name: Git pull --no-ff
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
@@ -312,7 +312,7 @@ jobs:
       - name: Git pull --no-ff
         shell: cmd
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
@@ -402,6 +402,10 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.6'
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Get dependencies
         working-directory: zstandard_platform_interface
         run: flutter pub get
@@ -421,6 +425,10 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.6'
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -503,6 +511,10 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.6'
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Get dependencies
         working-directory: zstandard_android
         run: flutter pub get
@@ -522,6 +534,10 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.6'
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -594,6 +610,10 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.6'
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Get dependencies
         working-directory: zstandard_ios
         run: flutter pub get
@@ -613,6 +633,10 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.6'
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -681,6 +705,10 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.6'
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Get dependencies
         working-directory: zstandard_macos
         run: flutter pub get
@@ -700,6 +728,10 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.6'
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard_macos
@@ -756,6 +788,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Git pull --no-ff
+        shell: cmd
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Get dependencies
         working-directory: zstandard_windows
         shell: cmd
@@ -772,6 +809,11 @@ jobs:
     needs: [platform_interface_publish, windows_analyze, windows_test, windows_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Git pull --no-ff
+        shell: cmd
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -843,6 +885,10 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.6'
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Get dependencies
         working-directory: zstandard_linux
         run: flutter pub get
@@ -862,6 +908,10 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.6'
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -934,6 +984,10 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.6'
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Get dependencies
         working-directory: zstandard_web
         run: flutter pub get
@@ -953,6 +1007,10 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.6'
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -1025,6 +1083,10 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.6'
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Get dependencies
         working-directory: zstandard_cli
         run: dart pub get
@@ -1044,6 +1106,10 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.6'
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard_cli
@@ -1128,6 +1194,10 @@ jobs:
           channel: 'stable'
           flutter-version: '3.35.6'
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
+
       - name: Wait for dependency to be available
         uses: nick-fields/retry@v3
         with:
@@ -1153,6 +1223,10 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.35.6'
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Get dependencies
         working-directory: zstandard
