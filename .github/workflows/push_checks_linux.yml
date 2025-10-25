@@ -25,12 +25,12 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
+      - name: Read version from CHANGELOG.md
         id: read_version
         run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - uses: subosito/flutter-action@v1
         with:
@@ -56,12 +56,12 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
+      - name: Read version from CHANGELOG.md
         id: read_version
         run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
 
       - uses: subosito/flutter-action@v1
@@ -84,12 +84,12 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
+      - name: Read version from CHANGELOG.md
         id: read_version
         run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - uses: subosito/flutter-action@v1
         with:
