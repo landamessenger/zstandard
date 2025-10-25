@@ -29,11 +29,10 @@ jobs:
       - name: Switch to SSH
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
+      - name: Read version from CHANGELOG.md
         id: read_version
         run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
@@ -144,12 +143,12 @@ jobs:
       - name: Switch to SSH
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
+      - name: Read version from CHANGELOG.md
         id: read_version
         run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Download source files from facebook/zstd
         run: |
@@ -221,12 +220,12 @@ jobs:
       - name: Switch to SSH
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
-      - name: Read version from pubspec.yml
-        working-directory: zstandard_platform_interface
+      - name: Read version from CHANGELOG.md
         id: read_version
         run: |
-          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Download source files from facebook/zstd
         run: |
