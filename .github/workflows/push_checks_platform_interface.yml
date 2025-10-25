@@ -21,18 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Read version from CHANGELOG.md
-        id: read_version
-        run: |
-          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -52,18 +40,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Read version from CHANGELOG.md
-        id: read_version
-        run: |
-          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -82,19 +58,6 @@ jobs:
     runs-on: [self-hosted, macOS]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Read version from CHANGELOG.md
-        id: read_version
-        run: |
-          VERSION=$(grep '^## ' CHANGELOG.md | head -n 1 | sed 's/^## //')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-
 
       - uses: subosito/flutter-action@v1
         with:

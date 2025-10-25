@@ -20,12 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Get dependencies for ${{ env.VERSION }}
+      - name: Get dependencies
         working-directory: zstandard_windows
         shell: cmd
         run: flutter pub get
@@ -41,19 +36,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Read version from pubspec.yaml
-        working-directory: zstandard_platform_interface
-        id: read_version
-        shell: cmd
-        run: |
-          for /f "tokens=2 delims= " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
-          echo VERSION=%VERSION% >> %GITHUB_ENV%
-
       - name: Get dependencies
         working-directory: zstandard_windows
         shell: cmd
@@ -64,19 +46,6 @@ jobs:
     runs-on: [self-hosted, Windows]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Read version from pubspec.yaml
-        working-directory: zstandard_platform_interface
-        id: read_version
-        shell: cmd
-        run: |
-          for /f "tokens=2 delims= " %%a in ('findstr "^version: " pubspec.yaml') do set VERSION=%%a
-          echo VERSION=%VERSION% >> %GITHUB_ENV%
 
       - name: Get dependencies
         working-directory: zstandard_windows
