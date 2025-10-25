@@ -1,7 +1,7 @@
 name: 🐛 Bug Report
 description: Report a bug on Zstandard
-title: "[PLUGIN_PLATFORM_HERE]: <YOUR TITLE HERE>"
-labels: ["Needs Attention", "type: bug"]
+title: "<YOUR TITLE HERE>"
+labels: ["bug", "bugfix", "priority: high"]
 body:
   - type: checkboxes
     attributes:
