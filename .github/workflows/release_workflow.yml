@@ -116,7 +116,7 @@ jobs:
 
       - name: Git pull --no-ff
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Commit and Push version updates
         uses: EndBug/add-and-commit@v9
@@ -181,7 +181,7 @@ jobs:
 
       - name: Git pull --no-ff
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
@@ -241,7 +241,7 @@ jobs:
 
       - name: Git pull --no-ff
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
@@ -312,7 +312,7 @@ jobs:
       - name: Git pull --no-ff
         shell: cmd
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull --no-ff origin ${{ github.ref_name }} --allow-unrelated-histories
 
       - name: Commit and Push Library
         uses: EndBug/add-and-commit@v9
