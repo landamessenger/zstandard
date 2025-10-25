@@ -1,0 +1,239 @@
+name: Task - Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        default: '1.0.0'
+      title:
+        description: 'Title'
+        required: true
+        default: 'New Version'
+      changelog:
+        description: 'Changelog'
+        required: true
+        default: '- Several improvements'
+      issue:
+        description: 'Launcher issue'
+        required: true
+        default: '-1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare-version-files:
+    name: Prepare files for release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));        
+            packageJson.version = '${{ github.event.inputs.version }}';
+            fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2));
+
+      - name: Commit updated package.json and dist directory
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './build/ ./package.json'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: updated compiled files and bumped version to ${{ github.event.inputs.version }}'
+
+  prepare-files-common:
+    name: Update common compiled files
+    runs-on: ubuntu-latest
+    needs: prepare-version-files
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull latest changes
+        run: |
+          git config --global user.email "efraespada@gmail.com"
+          git config --global user.name "Efra Espada"
+          git pull --no-ff --no-edit
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Common Platform Files
+        run: npm run build-common
+
+      - name: Force add build directory
+        run: git add -f ./build/
+
+      - name: Commit updated dist directory
+        uses: EndBug/add-and-commit@v9
+        with:
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: updated common compiled files'
+
+  prepare-files-linux-x64:
+    name: Update Linux x64 compiled files
+    runs-on: ubuntu-latest
+    needs: prepare-files-common
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull latest changes
+        run: |
+          git config --global user.email "efraespada@gmail.com"
+          git config --global user.name "Efra Espada"
+          git pull --no-ff --no-edit
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Linux Files
+        run: npm run build-linux-x64
+
+      - name: Force add build directory
+        run: git add -f ./build/
+
+      - name: Commit updated dist directory
+        uses: EndBug/add-and-commit@v9
+        with:
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: updated linux x64 compiled files'
+
+
+  prepare-files-macos-x64:
+    name: Update MacOS x64 compiled files
+    runs-on: [self-hosted, macOS, X64]
+    needs: prepare-files-linux-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull latest changes
+        run: |
+          git config --global user.email "efraespada@gmail.com"
+          git config --global user.name "Efra Espada"
+          git pull --no-ff --no-edit
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build MacOS Files
+        run: npm run build-macos-x64
+
+      - name: Force add build directory
+        run: git add -f ./build/
+
+      - name: Commit updated dist directory
+        uses: EndBug/add-and-commit@v9
+        with:
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: updated macos x64 compiled files'
+  
+  prepare-files-macos-arm64:
+    name: Update MacOS arm64 compiled files
+    runs-on: [self-hosted, macOS, ARM64]
+    needs: prepare-files-macos-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull latest changes
+        run: |
+          git config --global user.email "efraespada@gmail.com"
+          git config --global user.name "Efra Espada"
+          git pull --no-ff --no-edit
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build MacOS Files
+        run: npm run build-macos-arm64
+
+      - name: Force add build directory
+        run: git add -f ./build/
+
+      - name: Commit updated dist directory
+        uses: EndBug/add-and-commit@v9
+        with:
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: updated macos arm64 compiled files'
+
+  tag:
+    name: Publish version
+    runs-on: ubuntu-latest
+    needs: [ prepare-files-macos-arm64 ]
+    steps:
+      - name: Git Board Flow - Create Tag
+        uses: ./
+        if: ${{ success() }}
+        with:
+          debug: ${{ vars.DEBUG }}
+          single-action: 'create_tag'
+          single-action-issue: '${{ github.event.inputs.issue }}'
+          single-action-version: '${{ github.event.inputs.version }}'
+          token: ${{ secrets.PAT }}
+  
+      - name: Git Board Flow - Create Release
+        uses: ./
+        if: ${{ success() }}
+        with:
+          debug: ${{ vars.DEBUG }}
+          single-action: 'create_release'
+          single-action-issue: '${{ github.event.inputs.issue }}'
+          single-action-version: '${{ github.event.inputs.version }}'
+          single-action-title: '${{ github.event.inputs.title }}'
+          single-action-changelog: '${{ github.event.inputs.changelog }}'
+          token: ${{ secrets.PAT }}
+
+      - name: Git Board Flow - Publish Github Action Version
+        uses: ./
+        if: ${{ success() }}
+        with:
+          debug: ${{ vars.DEBUG }}
+          single-action: 'publish_github_action'
+          single-action-issue: '${{ github.event.inputs.issue }}'
+          single-action-version: '${{ github.event.inputs.version }}'
+          token: ${{ secrets.PAT }}
+
+      - name: Git Board Flow - Deploy success notification
+        uses: ./
+        if: ${{ success() }}
+        with:
+          debug: ${{ vars.DEBUG }}
+          single-action: 'deployed_action'
+          single-action-issue: '${{ github.event.inputs.issue }}'
+          openrouter-api-key: ${{ secrets.OPEN_ROUTER_API_KEY }}
+          openrouter-model: ${{ vars.OPEN_ROUTER_MODEL }}
+          token: ${{ secrets.PAT }}
