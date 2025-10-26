@@ -331,7 +331,7 @@ jobs:
           git pull origin ${{ github.ref }} --rebase
 
       - name: Git Board Flow - Create Tag
-        uses: landamessenger/git-board-flow@develop
+        uses: landamessenger/git-board-flow@master
         if: ${{ success() }}
         with:
           debug: ${{ vars.DEBUG }}
@@ -341,7 +341,7 @@ jobs:
           token: ${{ secrets.PAT }}
   
       - name: Git Board Flow - Create Release
-        uses: landamessenger/git-board-flow@develop
+        uses: landamessenger/git-board-flow@master
         if: ${{ success() }}
         with:
           debug: ${{ vars.DEBUG }}
@@ -1329,7 +1329,7 @@ jobs:
     needs: [ zstandard_publish ]
     steps:
       - name: Git Board Flow - Deploy success notification
-        uses: landamessenger/git-board-flow@develop
+        uses: landamessenger/git-board-flow@master
         with:
           debug: ${{ vars.DEBUG }}
           single-action: 'deployed_action'
