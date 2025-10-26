@@ -260,6 +260,7 @@ jobs:
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
       - name: Update branch
+        shell: cmd
         run: |
           git pull origin ${{ github.ref }} --rebase
 
