@@ -132,9 +132,9 @@ jobs:
       - name: Switch to SSH
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
-      - name: Git pull --no-ff
+      - name: Update branch
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull origin ${{ github.ref }} --rebase
 
       - name: Download source files from facebook/zstd
         run: |
@@ -198,9 +198,9 @@ jobs:
       - name: Switch to SSH
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
-      - name: Git pull --no-ff
+      - name: Update branch
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull origin ${{ github.ref }} --rebase
 
       - name: Download source files from facebook/zstd
         run: |
@@ -259,9 +259,9 @@ jobs:
         shell: cmd
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
-      - name: Git pull --no-ff
+      - name: Update branch
         run: |
-          git pull --no-ff origin ${{ github.ref_name }}
+          git pull origin ${{ github.ref }} --rebase
 
       - name: Download source files from facebook/zstd
         shell: cmd
@@ -323,6 +323,12 @@ jobs:
     runs-on: [ self-hosted, macOS ]
     needs: [update_files, cli_build_windows_precompiled_libs, cli_build_linux_precompiled_libs, cli_build_macos_precompiled_libs]
     steps:
+      - uses: actions/checkout@v4
+      
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - name: Git Board Flow - Create Tag
         uses: landamessenger/git-board-flow@v1
         if: ${{ success() }}
@@ -352,6 +358,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -371,6 +381,10 @@ jobs:
     needs: [tag_version]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -392,6 +406,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -411,6 +429,10 @@ jobs:
     needs: [platform_interface_analyze, platform_interface_test, platform_interface_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -453,6 +475,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -472,6 +498,10 @@ jobs:
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -493,6 +523,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -512,6 +546,10 @@ jobs:
     needs: [platform_interface_publish, android_analyze, android_test, android_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -544,6 +582,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -563,6 +605,10 @@ jobs:
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -584,6 +630,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -603,6 +653,10 @@ jobs:
     needs: [platform_interface_publish, ios_analyze, ios_test, ios_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -635,6 +689,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -655,6 +713,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -670,6 +732,10 @@ jobs:
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -690,6 +756,10 @@ jobs:
     needs: [platform_interface_publish, macos_analyze, macos_test, macos_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -722,6 +792,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        shell: cmd
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - name: Get dependencies
         working-directory: zstandard_windows
         shell: cmd
@@ -739,6 +814,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        shell: cmd
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - name: Get dependencies
         working-directory: zstandard_windows
         shell: cmd
@@ -750,6 +830,11 @@ jobs:
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        shell: cmd
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -767,6 +852,11 @@ jobs:
     needs: [platform_interface_publish, windows_analyze, windows_test, windows_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        shell: cmd
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -797,6 +887,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -817,6 +911,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -832,6 +930,10 @@ jobs:
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -852,6 +954,10 @@ jobs:
     needs: [platform_interface_publish, linux_analyze, linux_test, linux_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -884,6 +990,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -903,6 +1013,10 @@ jobs:
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -924,6 +1038,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -943,6 +1061,10 @@ jobs:
     needs: [platform_interface_publish, web_analyze, web_test, web_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -975,6 +1097,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -994,6 +1120,10 @@ jobs:
     needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1015,6 +1145,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -1034,6 +1168,10 @@ jobs:
     needs: [platform_interface_publish, cli_analyze, cli_test, cli_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1066,6 +1204,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -1091,6 +1233,10 @@ jobs:
     needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
@@ -1118,6 +1264,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
@@ -1143,6 +1293,10 @@ jobs:
     needs: [platform_interface_publish, zstandard_analyze, zstandard_test, zstandard_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
 
       - uses: subosito/flutter-action@v1
         with:
