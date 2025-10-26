@@ -23,7 +23,7 @@ jobs:
           echo "docker_host=unix://${HOME}/.colima/default/docker.sock" >> $GITHUB_OUTPUT
 
       - name: Update AI knowledge
-        uses: landamessenger/git-board-flow@v1
+        uses: landamessenger/git-board-flow@master
         env:
           DOCKER_HOST: ${{ steps.docker-env.outputs.docker_host }}
           RUNNER_TEMP: ${{ github.workspace }}/.runner_temp

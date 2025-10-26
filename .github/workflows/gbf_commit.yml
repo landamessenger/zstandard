@@ -15,7 +15,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - uses: landamessenger/git-board-flow@v1
+      - uses: landamessenger/git-board-flow@master
         with:
           debug: ${{ vars.DEBUG }}
           project-ids: 2

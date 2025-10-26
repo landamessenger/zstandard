@@ -16,7 +16,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - uses: landamessenger/git-board-flow@v1
+      - uses: landamessenger/git-board-flow@master
         with:
           ai-pull-request-description: true
           ai-ignore-files: build/*
