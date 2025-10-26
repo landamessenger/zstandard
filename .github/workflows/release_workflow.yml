@@ -321,7 +321,7 @@ jobs:
   
   tag_version:
     name: Tag version and create release
-    runs-on: [ self-hosted, macOS ]
+    runs-on: ubuntu-latest
     needs: [update_files, cli_build_windows_precompiled_libs, cli_build_linux_precompiled_libs, cli_build_macos_precompiled_libs]
     steps:
       - uses: actions/checkout@v4
@@ -331,7 +331,7 @@ jobs:
           git pull origin ${{ github.ref }} --rebase
 
       - name: Git Board Flow - Create Tag
-        uses: landamessenger/git-board-flow@develop
+        uses: landamessenger/git-board-flow@master
         if: ${{ success() }}
         with:
           debug: ${{ vars.DEBUG }}
@@ -341,7 +341,7 @@ jobs:
           token: ${{ secrets.PAT }}
   
       - name: Git Board Flow - Create Release
-        uses: landamessenger/git-board-flow@develop
+        uses: landamessenger/git-board-flow@master
         if: ${{ success() }}
         with:
           debug: ${{ vars.DEBUG }}
@@ -1325,11 +1325,11 @@ jobs:
 
   notify_deploy_completed:
     name: Notify deploy completed
-    runs-on: [self-hosted, macOS]
+    runs-on: ubuntu-latest
     needs: [ zstandard_publish ]
     steps:
       - name: Git Board Flow - Deploy success notification
-        uses: landamessenger/git-board-flow@develop
+        uses: landamessenger/git-board-flow@master
         with:
           debug: ${{ vars.DEBUG }}
           single-action: 'deployed_action'
