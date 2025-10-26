@@ -1,10 +1,10 @@
 name: Push Checks CLI
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
     branches:
       - '**'
+      - '!develop'
       - '!master'
     #paths:
     #  - "zstandard_cli/**"
