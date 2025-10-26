@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - '**'
+      - '!develop'
       - '!master'
     #paths:
     #  - "zstandard_cli/**"
