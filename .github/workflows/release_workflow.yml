@@ -132,6 +132,10 @@ jobs:
       - name: Switch to SSH
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }}
+
       - name: Download source files from facebook/zstd
         run: |
           cd zstandard_cli
@@ -194,6 +198,10 @@ jobs:
       - name: Switch to SSH
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
 
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }}
+
       - name: Download source files from facebook/zstd
         run: |
           cd zstandard_cli
@@ -250,6 +258,10 @@ jobs:
       - name: Switch to SSH
         shell: cmd
         run: git remote set-url origin git@github.com:landamessenger/zstandard.git
+
+      - name: Git pull --no-ff
+        run: |
+          git pull --no-ff origin ${{ github.ref_name }}
 
       - name: Download source files from facebook/zstd
         shell: cmd
