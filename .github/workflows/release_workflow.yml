@@ -187,7 +187,7 @@ jobs:
   cli_build_linux_precompiled_libs:
     name: Linux precompiled libraries
     runs-on: [ self-hosted, Linux ]
-    needs: [ update_files ]
+    needs: [ update_files, cli_build_macos_precompiled_libs ]
     steps:
       - uses: actions/checkout@v4
 
@@ -243,7 +243,7 @@ jobs:
   cli_build_windows_precompiled_libs:
     name: Windows precompiled libraries
     runs-on: [ self-hosted, Windows ]
-    needs: [ update_files ]
+    needs: [ update_files, cli_build_linux_precompiled_libs ]
     steps:
       - uses: actions/checkout@v4
 
@@ -588,7 +588,7 @@ jobs:
   ios_publish:
     name: Publish iOS
     runs-on: [self-hosted, macOS]
-    needs: [platform_interface_publish, ios_analyze, ios_test, ios_publish_dry_run]
+    needs: [platform_interface_publish, ios_analyze, ios_test, ios_publish_dry_run, android_publish]
     steps:
       - uses: actions/checkout@v4
 
@@ -675,7 +675,7 @@ jobs:
   macos_publish:
     name: Publish macOS
     runs-on: [self-hosted, macOS]
-    needs: [platform_interface_publish, macos_analyze, macos_test, macos_publish_dry_run]
+    needs: [platform_interface_publish, macos_analyze, macos_test, macos_publish_dry_run, ios_publish]
     steps:
       - uses: actions/checkout@v4
 
@@ -752,7 +752,7 @@ jobs:
   windows_publish:
     name: Publish Windows
     runs-on: [self-hosted, Windows]
-    needs: [platform_interface_publish, windows_analyze, windows_test, windows_publish_dry_run]
+    needs: [platform_interface_publish, windows_analyze, windows_test, windows_publish_dry_run, macos_publish]
     steps:
       - uses: actions/checkout@v4
 
@@ -837,7 +837,7 @@ jobs:
   linux_publish:
     name: Publish Linux
     runs-on: [self-hosted, Linux]
-    needs: [platform_interface_publish, linux_analyze, linux_test, linux_publish_dry_run]
+    needs: [platform_interface_publish, linux_analyze, linux_test, linux_publish_dry_run, windows_publish]
     steps:
       - uses: actions/checkout@v4
 
@@ -928,7 +928,7 @@ jobs:
   web_publish:
     name: Publish Web
     runs-on: [self-hosted, macOS]
-    needs: [platform_interface_publish, web_analyze, web_test, web_publish_dry_run]
+    needs: [platform_interface_publish, web_analyze, web_test, web_publish_dry_run, linux_publish]
     steps:
       - uses: actions/checkout@v4
 
@@ -1019,7 +1019,7 @@ jobs:
   cli_publish:
     name: Publish CLI
     runs-on: [self-hosted, macOS]
-    needs: [platform_interface_publish, cli_analyze, cli_test, cli_publish_dry_run]
+    needs: [platform_interface_publish, cli_analyze, cli_test, cli_publish_dry_run, web_publish]
     steps:
       - uses: actions/checkout@v4
 
@@ -1128,7 +1128,7 @@ jobs:
   zstandard_publish:
     name: Publish Zstandard
     runs-on: [self-hosted, macOS]
-    needs: [platform_interface_publish, zstandard_analyze, zstandard_test, zstandard_publish_dry_run]
+    needs: [platform_interface_publish, zstandard_analyze, zstandard_test, zstandard_publish_dry_run, cli_publish]
     steps:
       - uses: actions/checkout@v4
 
