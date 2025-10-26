@@ -27,7 +27,7 @@ concurrency:
 jobs:
   update_files:
     name: Update files job
-    runs-on: [ self-hosted, macOS ]
+    runs-on: [self-hosted, macOS, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -124,7 +124,7 @@ jobs:
 
   cli_build_macos_precompiled_libs:
     name: macOS precompiled libraries
-    runs-on: [ self-hosted, macOS ]
+    runs-on: [self-hosted, macOS, X64]
     needs: [update_files]
     steps:
       - uses: actions/checkout@v4
@@ -354,7 +354,7 @@ jobs:
 
   platform_interface_analyze:
     name: Analyze Platform Interface
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [tag_version]
     steps:
       - uses: actions/checkout@v4
@@ -378,7 +378,7 @@ jobs:
 
   platform_interface_test:
     name: Test Platform Interface
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [tag_version]
     steps:
       - uses: actions/checkout@v4
@@ -402,7 +402,7 @@ jobs:
 
   platform_interface_publish_dry_run:
     name: Dry Run Publish Platform Interface
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [tag_version]
     steps:
       - uses: actions/checkout@v4
@@ -426,7 +426,7 @@ jobs:
 
   platform_interface_publish:
     name: Publish Platform Interface
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [platform_interface_analyze, platform_interface_test, platform_interface_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
@@ -471,7 +471,7 @@ jobs:
 
   android_analyze:
     name: Analyze Android
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -495,7 +495,7 @@ jobs:
 
   android_test:
     name: Test Android
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -519,7 +519,7 @@ jobs:
 
   android_publish_dry_run:
     name: Dry Run Publish Android
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -543,7 +543,7 @@ jobs:
 
   android_publish:
     name: Publish Android
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [platform_interface_publish, android_analyze, android_test, android_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
@@ -578,7 +578,7 @@ jobs:
 
   ios_analyze:
     name: Analyze iOS
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -602,7 +602,7 @@ jobs:
 
   ios_test:
     name: Test iOS
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -626,7 +626,7 @@ jobs:
 
   ios_publish_dry_run:
     name: Dry Run Publish iOS
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -650,7 +650,7 @@ jobs:
 
   ios_publish:
     name: Publish iOS
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [platform_interface_publish, ios_analyze, ios_test, ios_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
@@ -685,7 +685,7 @@ jobs:
 
   macos_analyze:
     name: Analyze macOS
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -709,7 +709,7 @@ jobs:
 
   macos_test:
     name: Test macOS
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -729,7 +729,7 @@ jobs:
 
   macos_publish_dry_run:
     name: Dry Run Publish macOS
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -753,7 +753,7 @@ jobs:
 
   macos_publish:
     name: Publish macOS
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [platform_interface_publish, macos_analyze, macos_test, macos_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
@@ -986,7 +986,7 @@ jobs:
 
   web_analyze:
     name: Analyze Web
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -1010,7 +1010,7 @@ jobs:
 
   web_test:
     name: Test Web
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -1034,7 +1034,7 @@ jobs:
 
   web_publish_dry_run:
     name: Dry Run Publish Web
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: platform_interface_publish
     steps:
       - uses: actions/checkout@v4
@@ -1058,7 +1058,7 @@ jobs:
 
   web_publish:
     name: Publish Web
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [platform_interface_publish, web_analyze, web_test, web_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
@@ -1093,7 +1093,7 @@ jobs:
 
   cli_analyze:
     name: Analyze CLI
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
       - uses: actions/checkout@v4
@@ -1117,7 +1117,7 @@ jobs:
 
   cli_test:
     name: Test CLI
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
       - uses: actions/checkout@v4
@@ -1141,7 +1141,7 @@ jobs:
 
   cli_publish_dry_run:
     name: Dry Run Publish CLI
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
       - uses: actions/checkout@v4
@@ -1165,7 +1165,7 @@ jobs:
 
   cli_publish:
     name: Publish CLI
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [platform_interface_publish, cli_analyze, cli_test, cli_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
@@ -1200,7 +1200,7 @@ jobs:
 
   zstandard_analyze:
     name: Analyze Zstandard
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
       - uses: actions/checkout@v4
@@ -1230,7 +1230,7 @@ jobs:
 
   zstandard_test:
     name: Test Zstandard
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
       - uses: actions/checkout@v4
@@ -1260,7 +1260,7 @@ jobs:
 
   zstandard_publish_dry_run:
     name: Dry Run Publish Zstandard
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
     steps:
       - uses: actions/checkout@v4
@@ -1290,7 +1290,7 @@ jobs:
 
   zstandard_publish:
     name: Publish Zstandard
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, X64]
     needs: [platform_interface_publish, zstandard_analyze, zstandard_test, zstandard_publish_dry_run]
     steps:
       - uses: actions/checkout@v4
