@@ -1,0 +1,25 @@
+name: Copilot - Branch Sync
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!copilot-permission-test-*'
+
+jobs:
+  branch-sync:
+    name: Copilot - Branch Sync
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: vypdev/copilot@v3
+        with:
+          single-action: check_branch_sync_action
+          token: ${{ secrets.PAT }}

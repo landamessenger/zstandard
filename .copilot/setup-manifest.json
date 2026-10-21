@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "generator": {
+    "name": "@vypdev/copilot",
+    "contractVersion": 1
+  },
+  "profileDigest": "89ad8ec8518beed07782a0d81ba1835630a7aee6122d72bfa1e2dcd9490f0865",
+  "artifacts": {
+    ".agents/skills/copilot-repository-workflow/SKILL.md": {
+      "role": "skill",
+      "sha256": "7114d3fa5c7c1537a5e42547a5b6564b8c683dac56af0a7438773906802ef423"
+    },
+    ".copilot/AGENT_GUIDE.md": {
+      "role": "guide",
+      "sha256": "07ef187d584f4da868a6cebe6b6d7c7654b057af703e0d10ede11f768ba64674"
+    },
+    ".copilot/repository-profile.json": {
+      "role": "profile",
+      "sha256": "89ad8ec8518beed07782a0d81ba1835630a7aee6122d72bfa1e2dcd9490f0865"
+    },
+    "AGENTS.md": {
+      "role": "pointer",
+      "sha256": "ccb359cdcb867faa922b2c4429ba0908b4054d7f1459f24e8b3b5e3e7edd7382"
+    }
+  },
+  "installation": {
+    "schemaVersion": 1,
+    "operationId": "805aa9c8-79c6-4dd2-95e1-8f51ea562e57",
+    "repositoryId": 878163927,
+    "baseSha": "2b986dd9234cdb5854f2d325fa4d8567f487124b",
+    "planDigest": "7ffd190335eb898e3e5db8033624a5e9b52087bbbb691630fa84a99b1bc6438b"
+  }
+}

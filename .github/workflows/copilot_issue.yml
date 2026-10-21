@@ -2,20 +2,105 @@ name: Copilot - Issue
 
 on:
   issues:
-    types: [opened, reopened, edited, labeled, unlabeled, assigned, unassigned]
+    types: [opened, reopened, closed, edited, labeled, unlabeled, assigned, unassigned]
 
 jobs:
   copilot-issues:
+    if: ${{ (github.event.action == 'closed' && github.event.issue.state == 'closed') || vars.COPILOT_BOT_LOGIN == '' || github.actor != vars.COPILOT_BOT_LOGIN }}
     name: Copilot - Issue
-    runs-on: ubuntu-latest
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    timeout-minutes: 120
+    permissions:
+      contents: read
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - uses: vypdev/copilot@v2
+        uses: actions/checkout@v5
         with:
-          ai-ignore-files: build/*
+          persist-credentials: false
+
+      # Before Copilot, provision project runtimes/dependencies in this same job when
+      # repository verification is configured. A separate CI job does not prepare it.
+      # Declare reviewed versions in .copilot/verification-prerequisites.json.
+      # https://docs.page/vypdev/copilot/security-operations/operations/verification#repository-verification-prerequisites
+      - uses: vypdev/copilot@v3
+        with:
+          repository-locale: ${{ vars.REPOSITORY_LOCALE || 'en-US' }}
+          issues-locale: ${{ vars.ISSUES_LOCALE || '' }}
+          pull-requests-locale: ${{ vars.PULL_REQUESTS_LOCALE || '' }}
+          ai-ignore-files: ${{ vars.AI_IGNORE_FILES || 'build/*' }}
           debug: ${{ vars.DEBUG }}
-          opencode-model: ${{ vars.OPENCODE_MODEL }}
+          main-branch: ${{ vars.MAIN_BRANCH || 'master' }}
+          development-branch: ${{ vars.DEVELOPMENT_BRANCH || 'develop' }}
+          feature-tree: ${{ vars.FEATURE_TREE || 'feature' }}
+          bugfix-tree: ${{ vars.BUGFIX_TREE || 'bugfix' }}
+          hotfix-tree: ${{ vars.HOTFIX_TREE || 'hotfix' }}
+          release-tree: ${{ vars.RELEASE_TREE || 'release' }}
+          docs-tree: ${{ vars.DOCS_TREE || 'docs' }}
+          chore-tree: ${{ vars.CHORE_TREE || 'chore' }}
+          issue-managed-branches: ${{ vars.ISSUE_MANAGED_BRANCHES || 'true' }}
+          pre-branch-sdd: ${{ vars.PRE_BRANCH_SDD || 'false' }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          reopen-issue-on-push: ${{ vars.REOPEN_ISSUE_ON_PUSH || 'true' }}
+          desired-assignees-count: ${{ vars.DESIRED_ASSIGNEES_COUNT || '1' }}
+          desired-reviewers-count: ${{ vars.DESIRED_REVIEWERS_COUNT || '1' }}
+          commit-prefix-transforms: ${{ vars.COMMIT_PREFIX_TRANSFORMS || 'replace-slash' }}
+          ai-pull-request-description-mode: ${{ vars.AI_PULL_REQUEST_DESCRIPTION_MODE || 'replace' }}
+          ai-members-only: ${{ vars.AI_MEMBERS_ONLY || 'false' }}
+          ai-include-reasoning: ${{ vars.AI_INCLUDE_REASONING || 'false' }}
+          bugbot-severity: ${{ vars.BUGBOT_SEVERITY || 'low' }}
+          bugbot-comment-limit: ${{ vars.BUGBOT_COMMENT_LIMIT || '20' }}
+          bugbot-fix-verify-commands: ${{ vars.BUGBOT_AUTOFIX_VERIFY_COMMANDS }}
+          bugbot-dry-run: ${{ vars.BUGBOT_DRY_RUN || 'false' }}
+          bugbot-effort: ${{ vars.BUGBOT_EFFORT || 'smart' }}
+          bugbot-review-drafts: ${{ vars.BUGBOT_REVIEW_DRAFTS || 'false' }}
+          bugbot-trace-rules: ${{ vars.BUGBOT_TRACE_RULES || 'false' }}
+          bugbot-suggested-changes: ${{ vars.BUGBOT_SUGGESTED_CHANGES || 'true' }}
+          bugbot-telemetry: ${{ vars.BUGBOT_TELEMETRY || 'true' }}
+          bugbot-fail-on-unresolved: ${{ vars.BUGBOT_FAIL_ON_UNRESOLVED || 'false' }}
+          bugbot-organization-rules: ${{ vars.BUGBOT_ORGANIZATION_RULES }}
           project-ids: ${{ vars.PROJECT_IDS }}
+          project-column-issue-created: ${{ vars.PROJECT_COLUMN_ISSUE_CREATED || 'Todo' }}
+          project-column-pull-request-created: ${{ vars.PROJECT_COLUMN_PULL_REQUEST_CREATED || 'In Progress' }}
+          project-column-issue-in-progress: ${{ vars.PROJECT_COLUMN_ISSUE_IN_PROGRESS || 'In Progress' }}
+          project-column-pull-request-in-progress: ${{ vars.PROJECT_COLUMN_PULL_REQUEST_IN_PROGRESS || 'In Progress' }}
+          agent-provider: ${{ vars.AGENT_PROVIDER || 'codex' }}
+          agent-model-provider: ${{ vars.AGENT_MODEL_PROVIDER || 'openai' }}
+          agent-model: ${{ vars.AGENT_MODEL || 'gpt-6-luna' }}
+          agent-effort: ${{ vars.AGENT_EFFORT }}
+          agent-executable: ${{ vars.AGENT_EXECUTABLE }}
+          findings-provider: ${{ vars.FINDINGS_PROVIDER }}
+          findings-model-provider: ${{ vars.FINDINGS_MODEL_PROVIDER }}
+          findings-model: ${{ vars.FINDINGS_MODEL }}
+          findings-effort: ${{ vars.FINDINGS_EFFORT }}
+          findings-executable: ${{ vars.FINDINGS_EXECUTABLE }}
+          fixer-provider: ${{ vars.FIXER_PROVIDER }}
+          fixer-model-provider: ${{ vars.FIXER_MODEL_PROVIDER }}
+          fixer-model: ${{ vars.FIXER_MODEL }}
+          fixer-effort: ${{ vars.FIXER_EFFORT }}
+          fixer-executable: ${{ vars.FIXER_EXECUTABLE }}
+          planner-provider: ${{ vars.PLANNER_PROVIDER }}
+          planner-model-provider: ${{ vars.PLANNER_MODEL_PROVIDER }}
+          planner-model: ${{ vars.PLANNER_MODEL }}
+          planner-effort: ${{ vars.PLANNER_EFFORT }}
+          planner-executable: ${{ vars.PLANNER_EXECUTABLE }}
           token: ${{ secrets.PAT }}
+        env:
+          AGENT_PROVIDER: ${{ vars.AGENT_PROVIDER || 'codex' }}
+          AGENT_MODEL_PROVIDER: ${{ vars.AGENT_MODEL_PROVIDER || 'openai' }}
+          AGENT_MODEL: ${{ vars.AGENT_MODEL }}
+          AGENT_EFFORT: ${{ vars.AGENT_EFFORT }}
+          AGENT_ALLOWED_MODEL_PROVIDERS: ${{ vars.AGENT_ALLOWED_MODEL_PROVIDERS || 'openai' }}
+          AGENT_ALLOWED_MODELS: ${{ vars.AGENT_ALLOWED_MODELS || 'openai/gpt-6-luna' }}
+          AGENT_EXECUTABLE: ${{ vars.AGENT_EXECUTABLE }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          CURSOR_API_KEY: ${{ (vars.AGENT_PROVIDER == 'cursor' || vars.FINDINGS_PROVIDER == 'cursor' || vars.FIXER_PROVIDER == 'cursor' || vars.PLANNER_PROVIDER == 'cursor' || vars.REVIEWER_PROVIDER == 'cursor' || vars.TESTER_PROVIDER == 'cursor') && secrets.CURSOR_API_KEY || '' }}
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
