@@ -1,0 +1,101 @@
+name: Copilot - Deployment Orchestration
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  resolve-operation:
+    name: Resolve managed deployment ownership
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.body || '', '<!-- copilot-deployment ') }}
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      operation-id: ${{ steps.identity.outputs.operation-id }}
+      issue: ${{ steps.identity.outputs.issue }}
+    steps:
+      - name: Prove managed operation identity
+        id: identity
+        uses: actions/github-script@v9
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        with:
+          script: |
+            const body = process.env.PR_BODY || '';
+            if (body.length > 70000) return core.setFailed('The managed deployment marker input is too large.');
+            const matches = [...body.matchAll(/<!-- copilot-deployment operation-id="([A-Za-z0-9][A-Za-z0-9._-]{7,127})" phase="(promotion|reconciliation)" issue="([1-9][0-9]*)" -->/g)];
+            if (matches.length !== 1) return core.setFailed('Exactly one valid managed deployment marker is required.');
+            const [, operationId, phase, issueText] = matches[0];
+            const issue = Number(issueText);
+            if (!Number.isSafeInteger(issue) || issue < 1) return core.setFailed('The launcher issue is invalid.');
+            const response = await github.rest.issues.get({ ...context.repo, issue_number: issue });
+            if (response.data.pull_request) return core.setFailed('The deployment launcher must be an issue.');
+            const description = response.data.body || '';
+            const start = '<!-- copilot-configuration-start';
+            const end = 'copilot-configuration-end -->';
+            const startIndex = description.indexOf(start);
+            const endIndex = description.indexOf(end, startIndex + start.length);
+            if (startIndex < 0 || endIndex < 0 || description.indexOf(start, startIndex + start.length) >= 0) {
+              return core.setFailed('The launcher issue has no unique durable configuration.');
+            }
+            let payload;
+            try { payload = JSON.parse(description.slice(startIndex + start.length, endIndex)); }
+            catch { return core.setFailed('The launcher issue configuration is invalid.'); }
+            const state = payload?.deploymentOrchestration;
+            if (payload?.schemaVersion !== 3 || state?.stateVersion !== 1 || !Number.isSafeInteger(state?.revision) || state.revision < 1) {
+              return core.setFailed('The launcher issue has no supported deployment state.');
+            }
+            if (state.operationId !== operationId) return core.setFailed('The pull request does not own the durable deployment operation.');
+            const number = context.payload.pull_request.number;
+            const ownsPullRequest = phase === 'promotion'
+              ? state.promotionPullRequest === number
+              : Array.isArray(state.reconciliationTargets) && state.reconciliationTargets.some(target => target?.pullRequest === number);
+            if (!ownsPullRequest) return core.setFailed('The pull request is not recorded by the durable deployment state.');
+            core.setOutput('operation-id', operationId);
+            core.setOutput('issue', issueText);
+
+  mutate:
+    name: Advance durable deployment operation
+    needs: resolve-operation
+    if: ${{ needs.resolve-operation.result == 'success' }}
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    timeout-minutes: 15
+    concurrency:
+      group: copilot-deployment-${{ github.repository_id }}-${{ needs.resolve-operation.outputs.issue }}
+      cancel-in-progress: false
+      queue: max
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+      actions: write
+    steps:
+      - name: Checkout trusted base branch
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 1
+      - name: Continue from current durable state
+        uses: vypdev/copilot@v3
+        with:
+          single-action: continue_deployment_action
+          single-action-issue: ${{ needs.resolve-operation.outputs.issue }}
+          single-action-operation-id: ${{ needs.resolve-operation.outputs.operation-id }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          merge-queue-check-attestations: ${{ vars.MERGE_QUEUE_CHECK_ATTESTATIONS || '[]' }}
+          token: ${{ secrets.PAT }}

@@ -1,0 +1,54 @@
+name: Copilot - Close Inactive Issues
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      inactivity_threshold_hours:
+        description: Hours without activity before closing a waiting issue
+        required: false
+        default: '168'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  copilot-inactive-issues:
+    name: Copilot - Close Inactive Issues
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: vypdev/copilot@v3
+        with:
+          single-action: close_inactive_issues_action
+          inactivity-threshold-hours: ${{ inputs.inactivity_threshold_hours || vars.INACTIVITY_THRESHOLD_HOURS || '168' }}
+          agent-provider: ${{ vars.AGENT_PROVIDER || 'codex' }}
+          agent-model-provider: ${{ vars.AGENT_MODEL_PROVIDER || 'openai' }}
+          agent-model: ${{ vars.AGENT_MODEL || 'gpt-6-luna' }}
+          agent-effort: ${{ vars.AGENT_EFFORT }}
+          agent-executable: ${{ vars.AGENT_EXECUTABLE }}
+          findings-provider: ${{ vars.FINDINGS_PROVIDER }}
+          findings-model-provider: ${{ vars.FINDINGS_MODEL_PROVIDER }}
+          findings-model: ${{ vars.FINDINGS_MODEL }}
+          findings-effort: ${{ vars.FINDINGS_EFFORT }}
+          findings-executable: ${{ vars.FINDINGS_EXECUTABLE }}
+          fixer-provider: ${{ vars.FIXER_PROVIDER }}
+          fixer-model-provider: ${{ vars.FIXER_MODEL_PROVIDER }}
+          fixer-model: ${{ vars.FIXER_MODEL }}
+          fixer-effort: ${{ vars.FIXER_EFFORT }}
+          fixer-executable: ${{ vars.FIXER_EXECUTABLE }}
+          token: ${{ secrets.PAT }}

@@ -1,0 +1,51 @@
+name: Copilot - Pull Request Approval
+run-name: Copilot approval · ${{ github.event_name }}
+
+on:
+  workflow_run:
+    workflows: ["Copilot - Pull Request","PR Check Zstandard"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Positive pull-request number to recheck
+        required: true
+        type: number
+
+jobs:
+  observe-approval:
+    name: Copilot - Pull Request Approval
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      # Some workflow_run payloads omit the PR association. A repository-wide
+      # lane keeps every wakeup for the same PR serialized even when one run is
+      # associated by PR number and another is resolved from its head SHA.
+      group: copilot-approval-${{ github.repository }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      checks: write
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Observe current PR evidence without checking out PR code
+        uses: vypdev/copilot@v3
+        with:
+          pr-approval-observer: 'true'
+          pr-approval-pr-number: ${{ github.event.inputs.pr || '' }}
+          pr-approval-policy: ${{ vars.PR_APPROVAL_POLICY || '' }}
+          main-branch: ${{ vars.MAIN_BRANCH || 'master' }}
+          development-branch: ${{ vars.DEVELOPMENT_BRANCH || 'develop' }}
+          feature-tree: ${{ vars.FEATURE_TREE || 'feature' }}
+          bugfix-tree: ${{ vars.BUGFIX_TREE || 'bugfix' }}
+          docs-tree: ${{ vars.DOCS_TREE || 'docs' }}
+          chore-tree: ${{ vars.CHORE_TREE || 'chore' }}
+          bugbot-severity: ${{ vars.BUGBOT_SEVERITY || 'low' }}
+          bugbot-dry-run: ${{ vars.BUGBOT_DRY_RUN || 'false' }}
+          ai-ignore-files: ${{ vars.AI_IGNORE_FILES || 'build/*' }}
+          repository-locale: ${{ vars.REPOSITORY_LOCALE || 'en-US' }}
+          pull-requests-locale: ${{ vars.PULL_REQUESTS_LOCALE || '' }}
+          token: ${{ secrets.PAT }}
+        env:
+          COPILOT_APPROVAL_CHECK_TOKEN: ${{ github.token }}
