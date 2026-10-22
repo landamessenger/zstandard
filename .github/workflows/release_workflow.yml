@@ -194,6 +194,7 @@ jobs:
         uses: vypdev/copilot@v3
         with:
           single-action: published_deployment_action
+          merge-queue-check-attestations: ${{ vars.MERGE_QUEUE_CHECK_ATTESTATIONS || '[]' }}
           single-action-issue: ${{ inputs.issue }}
           issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
           single-action-operation-id: ${{ inputs.operation-id }}

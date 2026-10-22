@@ -44,6 +44,7 @@ jobs:
       # Before Copilot, provision project runtimes/dependencies in this same job when
       # repository verification is configured. A separate CI job does not prepare it.
       # Declare reviewed versions in .copilot/verification-prerequisites.json.
+      # Optional trusted-main setup: VERIFICATION_SETUP=true and .github/actions/copilot-verification-setup/action.yml.
       # https://docs.page/vypdev/copilot/security-operations/operations/verification#repository-verification-prerequisites
       - uses: vypdev/copilot@v3
         with:
@@ -63,6 +64,7 @@ jobs:
           chore-tree: ${{ vars.CHORE_TREE || 'chore' }}
           issue-managed-branches: ${{ vars.ISSUE_MANAGED_BRANCHES || 'true' }}
           pre-branch-sdd: ${{ vars.PRE_BRANCH_SDD || 'false' }}
+          verification-setup: ${{ vars.VERIFICATION_SETUP || 'false' }}
           reopen-issue-on-push: ${{ vars.REOPEN_ISSUE_ON_PUSH || 'true' }}
           desired-assignees-count: ${{ vars.DESIRED_ASSIGNEES_COUNT || '1' }}
           desired-reviewers-count: ${{ vars.DESIRED_REVIEWERS_COUNT || '1' }}
