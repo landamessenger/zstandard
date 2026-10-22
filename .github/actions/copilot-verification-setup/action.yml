@@ -1,0 +1,13 @@
+# Created once by Copilot setup. This action and its assets belong to your project.
+# Replace the placeholder with reviewed runtime/dependency setup, then merge onto MAIN_BRANCH.
+name: Prepare project verification
+description: Configure project dependencies before enabling VERIFICATION_SETUP.
+runs:
+  using: composite
+  steps:
+    - name: Configure project verification dependencies
+      shell: bash
+      run: |
+        printf '%s\n' 'Configure .github/actions/copilot-verification-setup/action.yml with your project dependencies before enabling VERIFICATION_SETUP.'
+        printf '%s\n' 'Replace this failing placeholder, review and merge it onto the configured MAIN_BRANCH, then run a real verification.'
+        exit 1
