@@ -41,6 +41,9 @@ jobs:
         run: flutter analyze
 
   check_linux_test:
+    env:
+      GDK_BACKEND: x11
+      LIBGL_ALWAYS_SOFTWARE: '1'
     name: Test Linux
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
@@ -70,9 +73,12 @@ jobs:
 
       - name: Run integration tests
         working-directory: zstandard_linux/example
-        run: flutter test integration_test/ -d linux
+        run: xvfb-run -a flutter test integration_test/ -d linux
 
   check_linux_test_from_pub_cache:
+    env:
+      GDK_BACKEND: x11
+      LIBGL_ALWAYS_SOFTWARE: '1'
     name: Test Linux (from pub cache)
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
@@ -105,7 +111,7 @@ jobs:
 
       - name: Run integration tests (C sources from pub cache)
         working-directory: zstandard_linux/example
-        run: flutter test integration_test/ -d linux
+        run: xvfb-run -a flutter test integration_test/ -d linux
 
   check_linux_publish_dry_run:
     name: Dry Run Publish Linux
