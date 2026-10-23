@@ -76,9 +76,10 @@ jobs:
       - name: Check coverage threshold (79% of lib/)
         working-directory: zstandard_cli
         run: |
-          lcov --extract coverage/lcov.info '*zstandard_cli/lib/*' -o coverage/lcov_lib.info
-          lcov --remove coverage/lcov_lib.info '*bindings_generated*' -o coverage/lcov_lib.info --ignore-errors unused
-          COVERAGE=$(lcov --summary coverage/lcov_lib.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
+          # Dart emits line coverage; keep the existing line coverage threshold.
+          lcov --rc function_coverage=0 --extract coverage/lcov.info '*zstandard_cli/lib/*' -o coverage/lcov_lib.info
+          lcov --rc function_coverage=0 --remove coverage/lcov_lib.info '*bindings_generated*' -o coverage/lcov_lib.info --ignore-errors unused
+          COVERAGE=$(lcov --rc function_coverage=0 --summary coverage/lcov_lib.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
           echo "Coverage (lib/ excluding generated): ${COVERAGE}%"
           if [ -z "$COVERAGE" ]; then echo "Could not parse coverage"; exit 1; fi
           if (( $(echo "$COVERAGE < 79" | bc -l) )); then echo "ERROR: Coverage ${COVERAGE}% is below 79%"; exit 1; fi
