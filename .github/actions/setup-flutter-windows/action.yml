@@ -35,3 +35,4 @@ runs:
       with:
         channel: stable
         flutter-version: ${{ inputs.flutter-version }}
+        cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
