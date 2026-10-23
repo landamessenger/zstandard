@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -17,7 +16,10 @@ concurrency:
 jobs:
   check_windows_analyze:
     name: Analyze Windows
-    runs-on: [self-hosted, Windows]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +35,10 @@ jobs:
 
   check_windows_test:
     name: Test Windows
-    runs-on: [self-hosted, Windows]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -59,7 +64,10 @@ jobs:
 
   check_windows_test_from_pub_cache:
     name: Test Windows (from pub cache)
-    runs-on: [self-hosted, Windows]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -84,7 +92,10 @@ jobs:
 
   check_windows_publish_dry_run:
     name: Dry Run Publish Windows
-    runs-on: [self-hosted, Windows]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
 

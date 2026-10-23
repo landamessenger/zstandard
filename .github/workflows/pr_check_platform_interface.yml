@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -19,7 +18,10 @@ env:
 jobs:
   check_platform_interface_analyze:
     name: Analyze Platform Interface
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
@@ -38,7 +40,10 @@ jobs:
 
   check_platform_interface_test:
     name: Test Platform Interface
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
@@ -78,7 +83,10 @@ jobs:
 
   check_platform_interface_publish_dry_run:
     name: Dry Run Publish Platform Interface
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 

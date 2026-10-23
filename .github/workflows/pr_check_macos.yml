@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -19,7 +18,10 @@ env:
 jobs:
   check_macos_analyze:
     name: Analyze macOS
-    runs-on: [self-hosted, macOS, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -38,7 +40,10 @@ jobs:
 
   check_macos_test:
     name: Test macOS
-    runs-on: [self-hosted, macOS, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -53,7 +58,10 @@ jobs:
 
   check_macos_test_from_pub_cache:
     name: Test macOS (from pub cache)
-    runs-on: [self-hosted, macOS, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, X64]
     steps:
       - uses: actions/checkout@v4
 
@@ -83,7 +91,10 @@ jobs:
 
   check_macos_publish_dry_run:
     name: Dry Run Publish macOS
-    runs-on: [self-hosted, macOS, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, X64]
     steps:
       - uses: actions/checkout@v4
 

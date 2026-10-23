@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -19,7 +18,10 @@ env:
 jobs:
   check_web_analyze:
     name: Analyze Web
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
@@ -38,7 +40,10 @@ jobs:
 
   check_web_test:
     name: Test Web
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
@@ -95,7 +100,10 @@ jobs:
 
   check_web_publish_dry_run:
     name: Dry Run Publish Web
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 

@@ -159,7 +159,9 @@ jobs:
   publish:
     name: Publish accepted production commit
     if: ${{ inputs.mode == 'publish' }}
-    runs-on: ubuntu-latest
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     needs: validate
     timeout-minutes: 30
     permissions:
