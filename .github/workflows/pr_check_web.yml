@@ -25,10 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -47,10 +49,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -107,10 +111,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_web

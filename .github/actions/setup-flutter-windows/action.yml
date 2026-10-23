@@ -16,6 +16,20 @@ runs:
           exit /b 1
         )
         echo %ProgramFiles%\Git\bin>>"%GITHUB_PATH%"
+    - name: Prepare verified portable jq
+      shell: powershell
+      run: |
+        $ErrorActionPreference = 'Stop'
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $toolDirectory = Join-Path $env:RUNNER_TEMP 'zstandard-jq'
+        New-Item -ItemType Directory -Force -Path $toolDirectory | Out-Null
+        $executable = Join-Path $toolDirectory 'jq.exe'
+        Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-windows-amd64.exe' -OutFile $executable
+        $expected = '23cb60a1354eed6bcc8d9b9735e8c7b388cd1fdcb75726b93bc299ef22dd9334'
+        if ((Get-FileHash -Algorithm SHA256 $executable).Hash.ToLowerInvariant() -ne $expected) {
+          throw 'The downloaded jq executable does not match the reviewed checksum.'
+        }
+        Add-Content -Path $env:GITHUB_PATH -Value $toolDirectory
     - name: Prepare Flutter SDK
       uses: subosito/flutter-action@v2
       with:
