@@ -21,7 +21,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, X64]
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +45,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, X64]
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
@@ -66,13 +66,26 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Prepare isolated Android SDK directories
+        shell: bash
+        run: |
+          sdk_root="$RUNNER_TEMP/zstandard-android-$GITHUB_JOB"
+          mkdir -p "$sdk_root" "$RUNNER_TEMP/zstandard-avd-$GITHUB_JOB" "$RUNNER_TEMP/zstandard-android-user-$GITHUB_JOB"
+          echo "ANDROID_HOME=$sdk_root" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$sdk_root" >> "$GITHUB_ENV"
+          echo "ANDROID_AVD_HOME=$RUNNER_TEMP/zstandard-avd-$GITHUB_JOB" >> "$GITHUB_ENV"
+          echo "ANDROID_USER_HOME=$RUNNER_TEMP/zstandard-android-user-$GITHUB_JOB" >> "$GITHUB_ENV"
+
+      - name: Prepare Android command-line tools
+        uses: android-actions/setup-android@v3
+
       - name: Run integration tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           target: google_apis
           profile: pixel_4
-          arch: x86_64
+          arch: arm64-v8a
           avd-name: zstandard_ci_test
           emulator-port: 5554
           script: |
@@ -83,7 +96,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, X64]
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
@@ -115,13 +128,26 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Prepare isolated Android SDK directories
+        shell: bash
+        run: |
+          sdk_root="$RUNNER_TEMP/zstandard-android-$GITHUB_JOB"
+          mkdir -p "$sdk_root" "$RUNNER_TEMP/zstandard-avd-$GITHUB_JOB" "$RUNNER_TEMP/zstandard-android-user-$GITHUB_JOB"
+          echo "ANDROID_HOME=$sdk_root" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$sdk_root" >> "$GITHUB_ENV"
+          echo "ANDROID_AVD_HOME=$RUNNER_TEMP/zstandard-avd-$GITHUB_JOB" >> "$GITHUB_ENV"
+          echo "ANDROID_USER_HOME=$RUNNER_TEMP/zstandard-android-user-$GITHUB_JOB" >> "$GITHUB_ENV"
+
+      - name: Prepare Android command-line tools
+        uses: android-actions/setup-android@v3
+
       - name: Run integration tests on emulator (from pub cache)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           target: google_apis
           profile: pixel_4
-          arch: x86_64
+          arch: arm64-v8a
           avd-name: zstandard_ci_test_pubcache
           emulator-port: 5556
           script: |
@@ -132,7 +158,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, X64]
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
