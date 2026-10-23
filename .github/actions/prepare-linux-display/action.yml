@@ -10,18 +10,30 @@ runs:
         if command -v xvfb-run >/dev/null && command -v Xvfb >/dev/null && command -v xauth >/dev/null; then
           exit 0
         fi
+        # Ubuntu's X server invokes this compiler at an absolute system path.
+        # It is part of the runner's base X11/GTK desktop toolchain.
+        if [ ! -x /usr/bin/xkbcomp ] || [ ! -f /usr/share/X11/xkb/rules/evdev ]; then
+          echo 'The Ubuntu runner needs x11-xkb-utils and xkb-data in its base desktop toolchain.' >&2
+          exit 1
+        fi
         display_root="$(mktemp -d "$RUNNER_TEMP/zstandard-xvfb.XXXXXX")"
-        mkdir -p "$display_root/apt/lists/partial" "$display_root/packages"
-        apt_options=(-o "Dir::State::Lists=$display_root/apt/lists" -o "Dir::Cache=$display_root/apt/cache")
+        mkdir -p "$display_root/apt/lists/partial" "$display_root/packages/partial"
+        cp /var/lib/dpkg/status "$display_root/apt/status"
+        # Resolve every missing runtime dependency using a private package state
+        # and cache. Download-only never installs packages or runs maintainer scripts.
+        apt_options=(-o "Dir::State::status=$display_root/apt/status" -o "Dir::State::Lists=$display_root/apt/lists" -o "Dir::Cache::archives=$display_root/packages")
         apt-get "${apt_options[@]}" update
+        apt-get "${apt_options[@]}" --download-only --assume-yes --no-install-recommends install xvfb xauth
         (
           cd "$display_root/packages"
-          apt-get "${apt_options[@]}" download xvfb xauth libxfont2 libunwind8
           for package in ./*.deb; do
             dpkg-deb --extract "$package" "$display_root"
           done
         )
-        library_directory="$(find "$display_root/usr/lib" -name libXfont2.so.2 -printf '%h\n' -quit)"
-        test -n "$library_directory"
         echo "$display_root/usr/bin" >> "$GITHUB_PATH"
-        echo "LD_LIBRARY_PATH=$library_directory${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+        if [ -d "$display_root/usr/lib" ]; then
+          library_directories="$(find "$display_root/usr/lib" -mindepth 1 -maxdepth 1 -type d -name '*-linux-gnu' | paste -sd : -)"
+          if [ -n "$library_directories" ]; then
+            echo "LD_LIBRARY_PATH=$library_directories${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+          fi
+        fi
