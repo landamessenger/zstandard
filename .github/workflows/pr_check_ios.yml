@@ -60,15 +60,24 @@ jobs:
         working-directory: zstandard_ios/example
         run: flutter pub get
 
-      - name: Boot iOS simulator
-        run: |
-          chmod +x scripts/manage_ios_simulator.sh
-          ./scripts/manage_ios_simulator.sh start
+      - name: Boot an isolated iOS simulator
+        id: ios-simulator
+        timeout-minutes: 4
+        run: python3 .github/scripts/start_ios_simulator.py
 
       - name: Run integration tests
+        working-directory: zstandard_ios/example
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
+        run: flutter test integration_test/ -d "$DEVICE_ID"
+
+      - name: Remove this job's iOS simulator
+        if: ${{ always() && steps.ios-simulator.outputs.device-id != '' }}
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
         run: |
-          DEVICE_ID=$(./scripts/manage_ios_simulator.sh device-id)
-          cd zstandard_ios/example && flutter test integration_test/ -d "$DEVICE_ID"
+          xcrun simctl shutdown "$DEVICE_ID" 2>/dev/null || true
+          xcrun simctl delete "$DEVICE_ID"
 
   check_ios_test_from_pub_cache:
     name: Test iOS (from pub cache)
@@ -101,15 +110,24 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Boot iOS simulator
-        run: |
-          chmod +x scripts/manage_ios_simulator.sh
-          ./scripts/manage_ios_simulator.sh start
+      - name: Boot an isolated iOS simulator
+        id: ios-simulator
+        timeout-minutes: 4
+        run: python3 .github/scripts/start_ios_simulator.py
 
       - name: Run integration tests (C sources from pub cache)
+        working-directory: zstandard_ios/example
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
+        run: flutter test integration_test/ -d "$DEVICE_ID"
+
+      - name: Remove this job's iOS simulator
+        if: ${{ always() && steps.ios-simulator.outputs.device-id != '' }}
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
         run: |
-          DEVICE_ID=$(./scripts/manage_ios_simulator.sh device-id)
-          cd zstandard_ios/example && flutter test integration_test/ -d "$DEVICE_ID"
+          xcrun simctl shutdown "$DEVICE_ID" 2>/dev/null || true
+          xcrun simctl delete "$DEVICE_ID"
 
   check_ios_publish_dry_run:
     name: Dry Run Publish iOS
