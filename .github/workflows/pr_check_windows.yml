@@ -26,9 +26,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Prepare Flutter SDK
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter-windows
         with:
-          channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies
@@ -51,9 +50,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Prepare Flutter SDK
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter-windows
         with:
-          channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies
@@ -86,9 +84,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Prepare Flutter SDK
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter-windows
         with:
-          channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Remove zstandard_native to force resolution from pub cache
@@ -120,9 +117,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Prepare Flutter SDK
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter-windows
         with:
-          channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies

@@ -1,0 +1,23 @@
+name: Prepare native Windows Flutter
+description: Select Git Bash instead of the WSL launcher, then install the reviewed Flutter SDK.
+inputs:
+  flutter-version:
+    description: Exact Flutter SDK version used by repository validation.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Select Git Bash for composite actions
+      shell: cmd
+      run: |
+        @echo off
+        if not exist "%ProgramFiles%\Git\bin\bash.exe" (
+          echo Expected the runner's Git for Windows Bash executable. 1>&2
+          exit /b 1
+        )
+        echo %ProgramFiles%\Git\bin>>"%GITHUB_PATH%"
+    - name: Prepare Flutter SDK
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version: ${{ inputs.flutter-version }}
