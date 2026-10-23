@@ -30,6 +30,23 @@ runs:
           throw 'The downloaded jq executable does not match the reviewed checksum.'
         }
         Add-Content -Path $env:GITHUB_PATH -Value $toolDirectory
+    - name: Recover interrupted repository SDK extraction
+      shell: powershell
+      env:
+        SDK_TOOL_CACHE: ${{ runner.tool_cache }}
+        SDK_VERSION: ${{ inputs.flutter-version }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        if ($env:SDK_VERSION -notmatch '^\d+\.\d+\.\d+$') {
+          throw 'Expected an exact stable Flutter release version.'
+        }
+        $sdkDirectory = Join-Path (Join-Path $env:SDK_TOOL_CACHE 'zstandard-flutter-v2') "stable-$env:SDK_VERSION-x64"
+        $sdkRoot = Join-Path $sdkDirectory 'flutter'
+        $requiredFiles = @('bin\flutter.bat', 'bin\cache\dart-sdk\bin\dart.exe', 'packages\flutter_tools\bin\flutter_tools.dart', 'packages\flutter\lib\widgets.dart')
+        if ((Test-Path -LiteralPath $sdkDirectory) -and ($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $sdkRoot $_)) })) {
+          Write-Host 'Removing the incomplete repository-specific Flutter installation before preparing the SDK.'
+          Remove-Item -LiteralPath $sdkDirectory -Recurse -Force
+        }
     - name: Prepare Flutter SDK
       uses: subosito/flutter-action@v2
       with:

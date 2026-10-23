@@ -1,0 +1,27 @@
+name: Prepare Linux virtual display
+description: Prepare Ubuntu Xvfb tools in the job directory without requiring sudo.
+runs:
+  using: composite
+  steps:
+    - name: Prepare job-local Xvfb
+      shell: bash
+      run: |
+        set -euo pipefail
+        if command -v xvfb-run >/dev/null && command -v Xvfb >/dev/null && command -v xauth >/dev/null; then
+          exit 0
+        fi
+        display_root="$(mktemp -d "$RUNNER_TEMP/zstandard-xvfb.XXXXXX")"
+        mkdir -p "$display_root/apt/lists/partial" "$display_root/packages"
+        apt_options=(-o "Dir::State::Lists=$display_root/apt/lists" -o "Dir::Cache=$display_root/apt/cache")
+        apt-get "${apt_options[@]}" update
+        (
+          cd "$display_root/packages"
+          apt-get "${apt_options[@]}" download xvfb xauth libxfont2 libunwind8
+          for package in ./*.deb; do
+            dpkg-deb --extract "$package" "$display_root"
+          done
+        )
+        library_directory="$(find "$display_root/usr/lib" -name libXfont2.so.2 -printf '%h\n' -quit)"
+        test -n "$library_directory"
+        echo "$display_root/usr/bin" >> "$GITHUB_PATH"
+        echo "LD_LIBRARY_PATH=$library_directory${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"

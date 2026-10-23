@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.41.4' }}
+  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
 
 jobs:
   check_zstandard_analyze:
@@ -72,8 +72,9 @@ jobs:
       - name: Check coverage threshold (76% of lib/)
         working-directory: zstandard
         run: |
-          lcov --extract coverage/lcov.info 'lib/*' -o coverage/lcov_lib.info
-          COVERAGE=$(lcov --summary coverage/lcov_lib.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
+          # Flutter emits line coverage; keep the existing line coverage threshold.
+          lcov --rc function_coverage=0 --extract coverage/lcov.info 'lib/*' -o coverage/lcov_lib.info
+          COVERAGE=$(lcov --rc function_coverage=0 --summary coverage/lcov_lib.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
           echo "Coverage (lib/ only): ${COVERAGE}%"
           if [ -z "$COVERAGE" ]; then
             echo "Could not parse coverage"

@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.41.4' }}
+  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
 
 jobs:
   check_linux_analyze:
@@ -71,7 +71,10 @@ jobs:
         working-directory: zstandard_linux/example
         run: flutter pub get
 
-      - name: Run integration tests
+      - name: Prepare virtual display
+        uses: ./.github/actions/prepare-linux-display
+
+      - name: Run integration tests with a virtual display
         working-directory: zstandard_linux/example
         run: xvfb-run -a flutter test integration_test/ -d linux
 
@@ -109,7 +112,10 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Run integration tests (C sources from pub cache)
+      - name: Prepare virtual display
+        uses: ./.github/actions/prepare-linux-display
+
+      - name: Run integration tests with a virtual display (C sources from pub cache)
         working-directory: zstandard_linux/example
         run: xvfb-run -a flutter test integration_test/ -d linux
 
