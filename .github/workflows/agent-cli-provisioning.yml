@@ -1,0 +1,90 @@
+name: Agent CLI Provisioning Check
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  verify-agent-clis:
+    name: Verify provisioned agent CLIs
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Verify selected CLI binary and headless contract
+        shell: bash
+        env:
+          AGENT_PROVIDER: ${{ vars.AGENT_PROVIDER || 'codex' }}
+          FINDINGS_PROVIDER: ${{ vars.FINDINGS_PROVIDER }}
+          FIXER_PROVIDER: ${{ vars.FIXER_PROVIDER }}
+          PLANNER_PROVIDER: ${{ vars.PLANNER_PROVIDER }}
+          REVIEWER_PROVIDER: ${{ vars.REVIEWER_PROVIDER }}
+          TESTER_PROVIDER: ${{ vars.TESTER_PROVIDER }}
+          AGENT_EXECUTABLE: ${{ vars.AGENT_EXECUTABLE }}
+          FINDINGS_EXECUTABLE: ${{ vars.FINDINGS_EXECUTABLE }}
+          FIXER_EXECUTABLE: ${{ vars.FIXER_EXECUTABLE }}
+          PLANNER_EXECUTABLE: ${{ vars.PLANNER_EXECUTABLE }}
+          REVIEWER_EXECUTABLE: ${{ vars.REVIEWER_EXECUTABLE }}
+          TESTER_EXECUTABLE: ${{ vars.TESTER_EXECUTABLE }}
+        run: |
+          set -euo pipefail
+
+          providers=("$AGENT_PROVIDER" "$FINDINGS_PROVIDER" "$FIXER_PROVIDER" "$PLANNER_PROVIDER" "$REVIEWER_PROVIDER" "$TESTER_PROVIDER")
+          executables=("$AGENT_EXECUTABLE" "$FINDINGS_EXECUTABLE" "$FIXER_EXECUTABLE" "$PLANNER_EXECUTABLE" "$REVIEWER_EXECUTABLE" "$TESTER_EXECUTABLE")
+          checked=""
+          for index in "${!providers[@]}"; do
+            provider="${providers[$index]}"
+            [[ -z "${provider// }" ]] && continue
+            case "$provider" in
+              opencode) expected_executable=opencode ;;
+              codex) expected_executable=codex ;;
+              cursor) expected_executable=agent ;;
+              *) echo "Unsupported agent provider: $provider" >&2; exit 1 ;;
+            esac
+            default_executable="$expected_executable"
+            if [[ "$provider" == "$AGENT_PROVIDER" ]]; then
+              default_executable="${AGENT_EXECUTABLE:-$expected_executable}"
+            fi
+            executable="${executables[$index]:-$default_executable}"
+            [[ "${executable##*/}" == "$expected_executable" ]] || { echo "Invalid $provider executable basename." >&2; exit 1; }
+            if ! command -v "$executable" >/dev/null 2>&1; then
+              [[ "$executable" == "$expected_executable" ]] || { echo "Configured executable is missing: $executable" >&2; exit 1; }
+              install_home="$RUNNER_TEMP/copilot-agent-$provider-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+              mkdir -p "$install_home"
+              case "$provider" in
+                codex)
+                  curl -fsSL https://chatgpt.com/codex/install.sh | env HOME="$install_home" CODEX_HOME="$install_home/.codex" CODEX_INSTALL_DIR="$install_home/bin" CODEX_NON_INTERACTIVE=1 sh
+                  export PATH="$install_home/bin:$PATH"
+                  ;;
+                opencode)
+                  curl -fsSL https://opencode.ai/install | env HOME="$install_home" bash -s -- --no-modify-path
+                  export PATH="$install_home/.opencode/bin:$PATH"
+                  ;;
+                cursor)
+                  curl -fsSL https://cursor.com/install | env HOME="$install_home" bash
+                  export PATH="$install_home/.local/bin:$PATH"
+                  ;;
+              esac
+            fi
+            actual_version="$("$executable" --version | head -n 1)"
+            [[ -n "${actual_version// }" ]] || { echo "$provider returned empty version output" >&2; exit 1; }
+            case "$provider" in
+              codex) "$executable" exec --help >/dev/null ;;
+              opencode) "$executable" run --help >/dev/null ;;
+              cursor) "$executable" --help >/dev/null ;;
+            esac
+            [[ " $checked " == *" $provider "* ]] || checked="$checked $provider"
+          done
+
+          echo "Agent CLI contract passed for: $checked."

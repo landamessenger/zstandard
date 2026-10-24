@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -26,7 +25,10 @@ env:
 jobs:
   check_android_analyze:
     name: Analyze Android
-    runs-on: [self-hosted, Linux]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     steps:
       - uses: actions/checkout@v6
 
@@ -64,7 +66,10 @@ jobs:
 
   check_android_test:
     name: Test Android (${{ matrix.example }}, ${{ matrix.source }})
-    runs-on: [self-hosted, Linux]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -193,7 +198,10 @@ jobs:
 
   check_android_publish_dry_run:
     name: Dry Run Publish Android
-    runs-on: [self-hosted, Linux]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     steps:
       - uses: actions/checkout@v6
 

@@ -3,113 +3,331 @@ name: Task - Hotfix
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'Internal orchestration phase'
+        required: true
+        default: prepare
+        type: choice
+        options: [prepare, publish, resume]
+      operation-id:
+        description: 'Internal durable operation identifier'
+        required: false
+        default: ''
       version:
-        description: 'Hotfix version'
-        required: true
-        default: '1.0.0'
+        description: 'Hotfix version (MAJOR.MINOR.PATCH)'
+        required: false
+        default: ''
       title:
-        description: 'Title'
-        required: true
-        default: 'New Version'
+        description: 'Hotfix title'
+        required: false
+        default: ''
       changelog:
-        description: 'Changelog'
-        required: true
-        default: '- Several improvements'
+        description: 'Hotfix changelog'
+        required: false
+        default: ''
       issue:
         description: 'Launcher issue'
         required: true
-        default: '-1'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: copilot-deployment-${{ github.repository_id }}-${{ inputs.issue }}
+  cancel-in-progress: false
+  queue: max
 
 jobs:
-  prepare-version-files:
-    name: Prepare files for hotfix
-    runs-on: ubuntu-latest
+  validate:
+    name: Validate deployment command
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    timeout-minutes: 5
+    permissions: {}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Validate inputs
+      - name: Validate bounded orchestration inputs
+        uses: actions/github-script@v9
         env:
-          VERSION: ${{ github.event.inputs.version }}
-          ISSUE: ${{ github.event.inputs.issue }}
-          TITLE: ${{ github.event.inputs.title }}
-          CHANGELOG: ${{ github.event.inputs.changelog }}
-        run: |
-          err=0
-          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Version must be in semver format (e.g. 1.0.0)."
-            err=1
-          fi
-          if ! [[ "$ISSUE" =~ ^-?[0-9]+$ ]]; then
-            echo "::error::Issue must be a number (e.g. 123 or -1)."
-            err=1
-          fi
-          if [[ ${#TITLE} -gt 1000 ]]; then
-            echo "::error::Title must be at most 1000 characters."
-            err=1
-          fi
-          if [[ ${#CHANGELOG} -gt 50000 ]]; then
-            echo "::error::Changelog must be at most 50000 characters."
-            err=1
-          fi
-          [[ $err -eq 0 ]] || exit 1
-
-      # Example: generic step to perform the version update or compilation (uncomment and adjust as needed)
-      # - name: Generic step
-      #   uses: whatever/action@v2 
-
-      - name: Commit updated package.json and dist directory
-        uses: EndBug/add-and-commit@v9
+          MODE: ${{ inputs.mode }}
+          OPERATION_ID: ${{ inputs.operation-id }}
+          VERSION: ${{ inputs.version }}
+          ISSUE: ${{ inputs.issue }}
+          TITLE: ${{ inputs.title }}
+          CHANGELOG: ${{ inputs.changelog }}
+          HOTFIX_REF: ${{ github.ref }}
+          HOTFIX_TREE: ${{ vars.HOTFIX_TREE || 'hotfix' }}
         with:
-          add: './build/ ./package.json'
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
-          default_author: user_info
-          message: 'gh-action: updated compiled files and bumped version to ${{ github.event.inputs.version }} (hotfix)'
+          script: |
+            const mode = process.env.MODE;
+            const operationId = process.env.OPERATION_ID || '';
+            const version = process.env.VERSION || '';
+            const issueText = process.env.ISSUE || '';
+            const issue = Number(issueText);
+            const title = process.env.TITLE || '';
+            const changelog = process.env.CHANGELOG || '';
+            const errors = [];
+            if (!/^[1-9][0-9]*$/.test(issueText) || !Number.isSafeInteger(issue) || issue < 1) errors.push('Issue must be a positive safe integer.');
+            if (!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(version)) errors.push('Version must use MAJOR.MINOR.PATCH.');
+            if (mode === 'prepare') {
+              if (process.env.HOTFIX_REF !== `refs/heads/${process.env.HOTFIX_TREE}/${version}`) errors.push('Preparation requires the matching hotfix branch for this version.');
+              if (operationId) errors.push('Operation ID must be empty in prepare mode.');
+              if (!title || title.length > 1000) errors.push('Title must contain 1-1000 characters.');
+              if (!changelog || changelog.length > 50000) errors.push('Changelog must contain 1-50000 characters.');
+            } else if (mode === 'publish' || mode === 'resume') {
+              if (!/^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$/.test(operationId)) errors.push('Operation ID is invalid.');
+              if (title || changelog) errors.push('Title and changelog must be empty in publish or resume mode.');
+            } else errors.push('Mode must be prepare, publish, or resume.');
+            if (errors.length) core.setFailed(errors.join(' '));
 
-  tag:
-    name: Publish version
-    runs-on: ubuntu-latest
-    needs: [ prepare-version-files ]
+  prepare-version-files:
+    name: Prepare and validate hotfix
+    if: ${{ inputs.mode == 'prepare' }}
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - macOS
+        - ARM64
+    needs: validate
+    timeout-minutes: 60
+    permissions:
+      contents: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        
-      - name: Copilot - Create Tag
-        uses: vypdev/copilot@v2
-        if: ${{ success() }}
+      - uses: actions/checkout@v5
         with:
-          debug: ${{ vars.DEBUG }}
-          single-action: 'create_tag'
-          single-action-issue: '${{ github.event.inputs.issue }}'
-          single-action-version: '${{ github.event.inputs.version }}'
-          token: ${{ secrets.PAT }}
-  
-      - name: Copilot - Create Release
-        uses: vypdev/copilot@v2
-        if: ${{ success() }}
+          persist-credentials: true
+      - name: Prepare package versions and generated artifacts
+        uses: ./.github/actions/prepare-package-release
         with:
-          debug: ${{ vars.DEBUG }}
-          single-action: 'create_release'
-          single-action-issue: '${{ github.event.inputs.issue }}'
-          single-action-version: '${{ github.event.inputs.version }}'
-          single-action-title: '${{ github.event.inputs.title }}'
-          single-action-changelog: '${{ github.event.inputs.changelog }}'
+          version: ${{ inputs.version }}
+          title: ${{ inputs.title }}
+          changelog: ${{ inputs.changelog }}
+          flutter-version: '3.47.2'
+
+      - name: Commit and push hotfix preparation
+        env:
+          VERSION: ${{ inputs.version }}
+          HOTFIX_BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git config user.name 'GitHub Actions'
+          git config user.email 'actions@github.com'
+          git add -- \
+            CHANGELOG.md \
+            zstandard/pubspec.yaml zstandard/CHANGELOG.md \
+            zstandard_android/pubspec.yaml zstandard_android/CHANGELOG.md \
+            zstandard_cli/pubspec.yaml zstandard_cli/CHANGELOG.md \
+            zstandard_ios/pubspec.yaml zstandard_ios/CHANGELOG.md \
+            zstandard_ios/ios/zstandard_ios/Package.swift \
+            zstandard_ios/ios/zstandard_ios.podspec \
+            zstandard_linux/pubspec.yaml zstandard_linux/CHANGELOG.md \
+            zstandard_macos/pubspec.yaml zstandard_macos/CHANGELOG.md \
+            zstandard_macos/macos/zstandard_macos/Package.swift \
+            zstandard_macos/macos/zstandard_macos.podspec \
+            zstandard_native/pubspec.yaml zstandard_native/CHANGELOG.md \
+            zstandard_platform_interface/pubspec.yaml zstandard_platform_interface/CHANGELOG.md \
+            zstandard_web/pubspec.yaml zstandard_web/CHANGELOG.md \
+            zstandard_web/blob/zstd.js zstandard_web/blob/zstd.wasm \
+            zstandard_web/example/web/zstd.js zstandard_web/example/web/zstd.wasm \
+            zstandard/example/web/zstd.js zstandard/example/web/zstd.wasm \
+            zstandard_windows/pubspec.yaml zstandard_windows/CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo 'Hotfix preparation is already committed.'
+            exit 0
+          fi
+          git commit -m "gh-action: Prepare hotfix $VERSION"
+          git push origin "HEAD:$HOTFIX_BRANCH"
+
+  promote:
+    name: Open production promotion
+    if: ${{ inputs.mode == 'prepare' }}
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    needs: prepare-version-files
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Create or resume promotion PR
+        uses: vypdev/copilot@v3
+        with:
+          single-action: prepare_deployment_action
+          single-action-issue: ${{ inputs.issue }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          single-action-version: ${{ inputs.version }}
+          single-action-title: ${{ inputs.title }}
+          single-action-changelog: ${{ inputs.changelog }}
+          main-branch: ${{ vars.MAIN_BRANCH || 'master' }}
+          development-branch: ${{ vars.DEVELOPMENT_BRANCH || 'develop' }}
+          release-tree: ${{ vars.RELEASE_TREE || 'release' }}
+          hotfix-tree: ${{ vars.HOTFIX_TREE || 'hotfix' }}
+          release-workflow: ${{ vars.RELEASE_WORKFLOW || 'release_workflow.yml' }}
+          hotfix-workflow: ${{ vars.HOTFIX_WORKFLOW || 'hotfix_workflow.yml' }}
+          release-reconciliation-strategy: ${{ vars.RELEASE_RECONCILIATION_STRATEGY || 'production-lineage' }}
+          hotfix-reconciliation-strategy: ${{ vars.HOTFIX_RECONCILIATION_STRATEGY || 'production-lineage' }}
+          reconciliation-pr-mode: ${{ vars.RECONCILIATION_PR_MODE || 'auto' }}
+          merge-queue-check-attestations: ${{ vars.MERGE_QUEUE_CHECK_ATTESTATIONS || '[]' }}
+          reconciliation-backmerge-mode: ${{ vars.RECONCILIATION_BACKMERGE_MODE || 'auto' }}
+          hotfix-active-release-policy: ${{ vars.HOTFIX_ACTIVE_RELEASE_POLICY || 'prefer-release' }}
+          reconciliation-tree: ${{ vars.RECONCILIATION_TREE || 'sync' }}
+          reconciliation-cleanup: ${{ vars.RECONCILIATION_CLEANUP || 'all' }}
+          reconciliation-issue-completion: ${{ vars.RECONCILIATION_ISSUE_COMPLETION || 'close' }}
+          orchestration-presentation-mode: ${{ vars.ORCHESTRATION_PRESENTATION_MODE || 'guided' }}
+          orchestration-diagrams: ${{ vars.ORCHESTRATION_DIAGRAMS || 'true' }}
+          orchestration-comment-mode: ${{ vars.ORCHESTRATION_COMMENT_MODE || 'update' }}
+          repository-locale: ${{ vars.REPOSITORY_LOCALE || 'en-US' }}
+          issues-locale: ${{ vars.ISSUES_LOCALE || '' }}
+          pull-requests-locale: ${{ vars.PULL_REQUESTS_LOCALE || '' }}
           token: ${{ secrets.PAT }}
 
-      # Example: generic step to perform the deployment (uncomment and adjust as needed)
-      # - name: Generic step
-      #   uses: whatever/action@v2 
-
-      - name: Copilot - Deploy success notification
-        uses: vypdev/copilot@v2
-        if: ${{ success() }}
+  publish:
+    name: Publish accepted production commit
+    if: ${{ inputs.mode == 'publish' }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
+    needs: validate
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
         with:
-          debug: ${{ vars.DEBUG }}
-          single-action: 'deployed_action'
-          single-action-issue: '${{ github.event.inputs.issue }}'
-          opencode-model: ${{ vars.OPENCODE_MODEL }}
+          persist-credentials: false
+          ref: ${{ vars.MAIN_BRANCH || 'master' }}
+      - name: Create or verify production tag
+        uses: vypdev/copilot@v3
+        with:
+          single-action: create_tag
+          single-action-issue: ${{ inputs.issue }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          single-action-operation-id: ${{ inputs.operation-id }}
+          single-action-version: ${{ inputs.version }}
+          token: ${{ secrets.PAT }}
+      # Add project-specific deployment here. It runs only after production promotion merged.
+      - name: Create or verify GitHub Release
+        uses: vypdev/copilot@v3
+        with:
+          single-action: create_release
+          single-action-issue: ${{ inputs.issue }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          single-action-operation-id: ${{ inputs.operation-id }}
+          single-action-version: ${{ inputs.version }}
+          token: ${{ secrets.PAT }}
+      - name: Start configured reconciliation
+        uses: vypdev/copilot@v3
+        with:
+          single-action: published_deployment_action
+          merge-queue-check-attestations: ${{ vars.MERGE_QUEUE_CHECK_ATTESTATIONS || '[]' }}
+          single-action-issue: ${{ inputs.issue }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          single-action-operation-id: ${{ inputs.operation-id }}
+          single-action-version: ${{ inputs.version }}
+          token: ${{ secrets.PAT }}
+
+  resume-reconciliation:
+    name: Resume published deployment
+    if: ${{ inputs.mode == 'resume' }}
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    needs: validate
+    timeout-minutes: 15
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Verify published operation before recovery
+        uses: actions/github-script@v9
+        env:
+          ISSUE: ${{ inputs.issue }}
+          OPERATION_ID: ${{ inputs.operation-id }}
+          VERSION: ${{ inputs.version }}
+        with:
+          script: |
+            const response = await github.rest.issues.get({ ...context.repo, issue_number: Number(process.env.ISSUE) });
+            if (response.data.pull_request) throw new Error('The launcher must be an issue.');
+            const body = response.data.body || '';
+            const start = '<!-- copilot-configuration-start';
+            const end = 'copilot-configuration-end -->';
+            const first = body.indexOf(start);
+            const last = body.indexOf(end, first + start.length);
+            if (first < 0 || last < 0 || body.indexOf(start, first + start.length) >= 0) throw new Error('A unique durable configuration is required.');
+            const payload = JSON.parse(body.slice(first + start.length, last));
+            const state = payload?.deploymentOrchestration;
+            const receipt = state?.publicationReceipt;
+            const phase = state?.phase === 'blocked' && state?.lastFailure?.retryable === true
+              ? state.lastFailure.previousPhase : state?.phase;
+            if (payload?.schemaVersion !== 3 || state?.stateVersion !== 1
+              || !Number.isSafeInteger(state?.revision) || state.revision < 1
+              || state.operationId !== process.env.OPERATION_ID || state.version !== process.env.VERSION
+              || !['reconciliation_pending', 'completed'].includes(phase) || state.publicationVerified !== true
+              || !/^[a-f0-9]{40}$/i.test(state.productionSha || '') || state.tag !== `v${process.env.VERSION}`
+              || receipt?.operationId !== state.operationId || receipt?.productionSha !== state.productionSha
+              || receipt?.tag !== state.tag) throw new Error('Recovery requires the matching, already verified publication and reconciliation state.');
+      - name: Resume reconciliation from verified receipts
+        uses: vypdev/copilot@v3
+        with:
+          single-action: published_deployment_action
+          single-action-issue: ${{ inputs.issue }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          single-action-operation-id: ${{ inputs.operation-id }}
+          single-action-version: ${{ inputs.version }}
+          merge-queue-check-attestations: ${{ vars.MERGE_QUEUE_CHECK_ATTESTATIONS || '[]' }}
+          token: ${{ secrets.PAT }}
+
+  report-failure:
+    name: Report orchestration failure
+    runs-on:
+      group: vypdev
+      labels:
+        - self-hosted
+        - codex
+        - Linux
+    timeout-minutes: 5
+    needs: [validate, prepare-version-files, promote, publish, resume-reconciliation]
+    if: ${{ failure() && needs.validate.result == 'success' }}
+    permissions:
+      issues: write
+    steps:
+      - name: Persist publication failure
+        if: ${{ inputs.mode == 'publish' || inputs.mode == 'resume' }}
+        uses: vypdev/copilot@v3
+        with:
+          single-action: failed_deployment_action
+          single-action-issue: ${{ inputs.issue }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          single-action-operation-id: ${{ inputs.operation-id }}
+          single-action-version: ${{ inputs.version }}
+          single-action-message: Publication failed. Review ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} before retrying.
+          token: ${{ secrets.PAT }}
+      - name: Report preparation failure
+        if: ${{ inputs.mode == 'prepare' }}
+        uses: vypdev/copilot@v3
+        with:
+          single-action: publish_issue_comment
+          single-action-issue: ${{ inputs.issue }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          single-action-message: |
+            ## ❌ Hotfix orchestration needs attention
+
+            Phase `${{ inputs.mode }}` failed. Review the control center before retrying.
+
+            [Review the workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           token: ${{ secrets.PAT }}

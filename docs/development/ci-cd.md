@@ -100,7 +100,7 @@ Triggered manually (**workflow_dispatch**) with inputs such as version, title, c
 3. **Candidate verification**: Build and execute Android (AGP 9 and legacy), Linux, Web, Windows, and both Apple dependency-manager variants. Candidate jobs use local overrides until their pub.dev versions exist.
 4. **Tag and release**: Create one immutable git tag and a draft GitHub release with changelog and checksums.
 5. **Publish**: Publish packages to pub.dev in dependency order: **platform_interface → zstandard_native** (shared C source) **→ platform implementations** (android, ios, macos, linux, windows, web) **→ zstandard_cli → zstandard**.
-6. **Verify and finalize**: Verify all ten package versions through the pub.dev API, finalize the draft release, and notify. A separate workflow integrates the release branch into `develop` and `master`.
+6. **Verify and finalize**: Verify all ten package versions through the pub.dev API, finalize the draft release, and notify. The optional launcher-issue notification uses Copilot v3; branch integration into `develop` and `master` requires separate reviewed pull requests.
 
 The workflow uses **self-hosted** runners for macOS, Linux, and Windows to build native binaries and run platform-specific steps.
 
@@ -108,7 +108,7 @@ The workflow uses **self-hosted** runners for macOS, Linux, and Windows to build
 
 **File**: [`.github/workflows/hotfix_workflow.yml`](https://github.com/vypdev/zstandard/blob/master/.github/workflows/hotfix_workflow.yml)
 
-Used for expedited fixes (e.g. security or critical bugs). Typically triggered manually and may skip some steps or use a shorter path to release. See the workflow file and team docs for details.
+Prepares versioned fixes through the same `prepare-package-release` action as releases, using the ARM64 macOS runner for pinned Flutter, package/Apple metadata and generated Wasm verification. The action has a three-case contract test budget, including idempotent preparation and corrupt-artifact rejection on resume. Copilot then manages production promotion and its accepted tag/GitHub Release. This hotfix route does not publish packages to pub.dev; use the complete release pipeline for package publication. See [Release process](release-process.md).
 
 ## Running checks locally
 

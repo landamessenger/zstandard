@@ -1,0 +1,10 @@
+name: Prepare macOS coverage verification
+description: Provide GPG for Codecov signature verification on the self-hosted macOS runner.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        if ! command -v gpg >/dev/null 2>&1; then
+          brew install gnupg
+        fi

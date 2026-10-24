@@ -1,0 +1,1064 @@
+name: Task - Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        default: '1.0.0'
+      title:
+        description: 'Title'
+        required: true
+        default: 'New Version'
+      changelog:
+        description: 'Changelog'
+        required: true
+        default: '- Several improvements'
+      issue:
+        description: 'Launcher issue'
+        required: true
+        default: '-1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimum privilege: only grant write where needed
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+# Tool versions: FLUTTER_VERSION from org variable vars.FLUTTER_VERSION (fallback for forks/local).
+env:
+  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.41.4' }}
+
+jobs:
+  update_files:
+    permissions:
+      contents: write
+    name: Update files job
+    runs-on: [self-hosted, macOS, X64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Configure Git for push (HTTPS + token)
+        run: git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+
+      - name: Pre check tag
+        id: pre_check_tag
+        run: |
+          # Checks if the tag already exists in the remote repository
+          if git rev-parse "v${{ github.event.inputs.version }}" >/dev/null 2>&1; then
+            echo "Error: Tag v${{ github.event.inputs.version }} already exists."
+            exit 1
+          fi
+
+          # Check if the version was found
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "Error: No version found"
+            exit 1
+          fi  
+
+      - name: Update root CHANGELOG.md with release info
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          TITLE: ${{ github.event.inputs.title }}
+          CHANGELOG_BODY: ${{ github.event.inputs.changelog }}
+        run: |
+          {
+            echo "## $VERSION - $TITLE"
+            echo ""
+            printf '%s\n' "$CHANGELOG_BODY"
+            echo ""
+            cat CHANGELOG.md
+          } > CHANGELOG.md.new
+          mv CHANGELOG.md.new CHANGELOG.md
+
+      - name: Copy CHANGELOG.md
+        run: |
+          cp CHANGELOG.md "zstandard_platform_interface/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_native/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_android/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_ios/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_macos/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_windows/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_linux/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_web/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard_cli/CHANGELOG.md"
+          cp CHANGELOG.md "zstandard/CHANGELOG.md"
+
+      - name: Update versions in all pubspec.yaml
+        run: dart run .github/scripts/update_versions.dart "${{ github.event.inputs.version }}"
+
+      - name: Commit and Push version updates
+        uses: EndBug/add-and-commit@v9
+        with:
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Bump dependencies version to ${{ github.event.inputs.version }}'
+
+  cli_build_macos_precompiled_libs:
+    name: macOS precompiled libraries
+    runs-on: [self-hosted, macOS, X64]
+    needs: [update_files]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Git for push (HTTPS + token)
+        run: git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - name: Copy zstd from zstandard_native into zstandard_cli
+        run: |
+          cp -r zstandard_native/src/zstd zstandard_cli/
+          ( cd zstandard_native/src/zstd && git rev-parse HEAD 2>/dev/null && git describe --tags 2>/dev/null ) || true
+
+      - name: List files in zstandard_cli/zstd to verify
+        run: cd zstandard_cli && ls -R zstd
+
+      - name: Compile x86-x64 macos lib
+        run: |
+          cd zstandard_cli/builders/macos_intel
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --config Release
+          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_intel.dylib
+          cd ..
+          rm -rf build
+
+      - name: Compile arm64 macos lib
+        run: |
+          cd zstandard_cli/builders/macos_arm
+          mkdir build && cd build
+          cmake -DCMAKE_OSX_ARCHITECTURES=arm64 ..
+          cmake --build . --config Release
+          mv libzstandard_macos.dylib ../../../lib/src/bin/libzstandard_macos_arm.dylib
+          cd ..
+          rm -rf build
+
+      - name: Join libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          lipo -create -output libzstandard_macos.dylib libzstandard_macos_intel.dylib libzstandard_macos_arm.dylib
+          rm libzstandard_macos_arm.dylib
+          rm libzstandard_macos_intel.dylib
+
+      - name: Verify libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          lipo -info libzstandard_macos.dylib
+
+      - name: Commit and Push Library
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/libzstandard_macos.dylib'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled macOS libraries for x86_64 and arm64'
+  
+  cli_build_linux_precompiled_libs:
+    name: Linux precompiled libraries
+    runs-on: [ self-hosted, Linux ]
+    needs: [ update_files, cli_build_macos_precompiled_libs ]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Git for push (HTTPS + token)
+        run: git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - name: Copy zstd from zstandard_native into zstandard_cli
+        run: |
+          cp -r zstandard_native/src/zstd zstandard_cli/
+          ( cd zstandard_native/src/zstd && git rev-parse HEAD 2>/dev/null && git describe --tags 2>/dev/null ) || true
+
+      - name: List files in zstandard_cli/zstd to verify
+        run: cd zstandard_cli && ls -R zstd
+
+      - name: Compile x86_64 Linux lib
+        run: |
+          cd zstandard_cli/builders/linux_x64
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --config Release
+          mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_x64.so
+          cd ..
+          rm -rf build
+
+      - name: Compile arm64 Linux lib
+        run: |
+          cd zstandard_cli/builders/linux_arm
+          mkdir build && cd build
+          cmake -DCMAKE_TOOLCHAIN_FILE=../arm64-toolchain.cmake ..
+          cmake --build . --config Release
+          mv libzstandard_linux.so ../../../lib/src/bin/libzstandard_linux_arm64.so
+          cd ..
+          rm -rf build
+
+      - name: Verify Linux libs
+        run: |
+          cd zstandard_cli/lib/src/bin
+          file libzstandard_linux_x64.so
+          file libzstandard_linux_arm64.so
+
+      - name: Commit and Push Library
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled Linux libraries for x86_64 and arm64'
+  
+  cli_build_windows_precompiled_libs:
+    name: Windows precompiled libraries
+    runs-on: [ self-hosted, Windows ]
+    needs: [ update_files, cli_build_linux_precompiled_libs ]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Git for push (HTTPS + token)
+        shell: cmd
+        run: git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+
+      - name: Update branch
+        shell: cmd
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - name: Copy zstd from zstandard_native into zstandard_cli
+        shell: cmd
+        run: xcopy zstandard_native\src\zstd zstandard_cli\zstd /E /I
+
+      - name: List files in zstandard_cli/zstd to verify
+        shell: cmd
+        run: dir zstandard_cli\zstd /S
+
+      - name: Compile x86_64 Windows lib
+        shell: cmd
+        run: |
+          cd zstandard_cli/builders/windows_x64
+          mkdir build && cd build
+          cmake -G "Visual Studio 17 2022" -A x64 ..
+          cmake --build . --config Release
+          cd Release
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_x64.dll
+          cd ..
+          cd ..
+          rmdir /S /Q build
+
+      - name: Compile arm64 Windows lib
+        shell: cmd
+        run: |
+          cd zstandard_cli/builders/windows_arm
+          mkdir build && cd build
+          cmake -G "Visual Studio 17 2022" -A ARM64 ..
+          cmake --build . --config Release
+          cd Release
+          move zstandard_windows.dll ..\..\..\..\lib\src\bin\zstandard_windows_arm64.dll
+          cd ..
+          cd ..
+          rmdir /S /Q build
+
+      - name: Verify Windows libs architecture
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_x64.dll | findstr /c:"machine"
+          dumpbin /headers zstandard_cli/lib/src/bin/zstandard_windows_arm64.dll | findstr /c:"machine"
+
+      - name: Commit and Push Library
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: './zstandard_cli/lib/src/bin/'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: user_info
+          message: 'gh-action: Add precompiled Windows libraries for x86_64 and arm64'
+  
+  tag_version:
+    name: Tag version and create release
+    runs-on: ubuntu-latest
+    needs: [update_files, cli_build_windows_precompiled_libs, cli_build_linux_precompiled_libs, cli_build_macos_precompiled_libs]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - name: Git Board Flow - Create Tag
+        uses: vypdev/copilot@v2
+        if: ${{ success() }}
+        with:
+          debug: ${{ vars.DEBUG }}
+          single-action: 'create_tag'
+          single-action-issue: '${{ github.event.inputs.issue }}'
+          single-action-version: '${{ github.event.inputs.version }}'
+          token: ${{ secrets.PAT }}
+  
+      - name: Git Board Flow - Create Release
+        uses: vypdev/copilot@v2
+        if: ${{ success() }}
+        with:
+          debug: ${{ vars.DEBUG }}
+          single-action: 'create_release'
+          single-action-issue: '${{ github.event.inputs.issue }}'
+          single-action-version: '${{ github.event.inputs.version }}'
+          single-action-title: '${{ github.event.inputs.title }}'
+          single-action-changelog: '${{ github.event.inputs.changelog }}'
+          token: ${{ secrets.PAT }}
+
+      - name: Generate checksums for native libs (integrity / provenance)
+        if: success()
+        run: |
+          echo "Checksums for native libraries (zstandard_cli) at release v${{ github.event.inputs.version }}" > checksums-native-libs.txt
+          if [ -d zstandard_cli/lib/src/bin ] && [ -n "$(ls -A zstandard_cli/lib/src/bin 2>/dev/null)" ]; then
+            (cd zstandard_cli/lib/src/bin && sha256sum *) >> checksums-native-libs.txt
+            cat checksums-native-libs.txt
+          fi
+
+      - name: Upload checksums to release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: checksums-native-libs.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  platform_interface_publish_dry_run:
+    name: Dry Run Publish Platform Interface
+    runs-on: [self-hosted, macOS, X64]
+    needs: [tag_version]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Get dependencies
+        working-directory: zstandard_platform_interface
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_platform_interface
+        run: dart pub publish --dry-run
+
+  platform_interface_publish:
+    name: Publish Platform Interface
+    runs-on: [self-hosted, macOS, X64]
+    needs: [platform_interface_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Get dependencies
+        working-directory: zstandard_platform_interface
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_platform_interface
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_platform_interface.zip ./zstandard_platform_interface
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_platform_interface.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  zstandard_native_publish_dry_run:
+    name: Dry Run Publish zstandard_native
+    runs-on: [self-hosted, macOS, X64]
+    needs: platform_interface_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Get dependencies
+        working-directory: zstandard_native
+        run: flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_native
+        run: dart pub publish --dry-run
+
+  zstandard_native_publish:
+    name: Publish zstandard_native
+    runs-on: [self-hosted, macOS, X64]
+    needs: [zstandard_native_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Get dependencies
+        working-directory: zstandard_native
+        run: flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_native
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_native.zip ./zstandard_native
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_native.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_android && flutter pub get
+
+  android_publish_dry_run:
+    name: Dry Run Publish Android
+    runs-on: [self-hosted, macOS, X64]
+    needs: zstandard_native_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_android && flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_android
+        run: dart pub publish --dry-run
+
+  android_publish:
+    name: Publish Android
+    runs-on: [self-hosted, macOS, X64]
+    needs: [zstandard_native_publish, android_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_android && flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_android
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_android.zip ./zstandard_android
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_android.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ios_publish_dry_run:
+    name: Dry Run Publish iOS
+    runs-on: [self-hosted, macOS, X64]
+    needs: zstandard_native_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_ios && flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_ios
+        run: dart pub publish --dry-run
+
+  ios_publish:
+    name: Publish iOS
+    runs-on: [self-hosted, macOS, X64]
+    needs: [zstandard_native_publish, ios_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_ios && flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_ios
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_ios.zip ./zstandard_ios
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_ios.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos_publish_dry_run:
+    name: Dry Run Publish macOS
+    runs-on: [self-hosted, macOS, X64]
+    needs: zstandard_native_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_macos && flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_macos
+        run: dart pub publish --dry-run
+
+  macos_publish:
+    name: Publish macOS
+    runs-on: [self-hosted, macOS, X64]
+    needs: [zstandard_native_publish, macos_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_macos && flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_macos
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_macos.zip ./zstandard_macos
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_macos.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows_publish_dry_run:
+    name: Dry Run Publish Windows
+    runs-on: [self-hosted, Windows]
+    needs: zstandard_native_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        shell: cmd
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cmd /c "cd zstandard_windows && flutter pub get"
+
+      - name: Publish Dry Run
+        working-directory: zstandard_windows
+        shell: cmd
+        run: dart pub publish --dry-run
+
+  windows_publish:
+    name: Publish Windows
+    runs-on: [self-hosted, Windows]
+    needs: [zstandard_native_publish, windows_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        shell: cmd
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cmd /c "cd zstandard_windows && flutter pub get"
+
+      - name: Publish
+        working-directory: zstandard_windows
+        shell: cmd
+        run: dart pub publish -f
+
+      - name: Compress folder
+        shell: cmd
+        run: tar -a -c -f zstandard_windows.zip zstandard_windows
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_windows.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  linux_publish_dry_run:
+    name: Dry Run Publish Linux
+    runs-on: [self-hosted, Linux]
+    needs: zstandard_native_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_linux && flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_linux
+        run: dart pub publish --dry-run
+
+  linux_publish:
+    name: Publish Linux
+    runs-on: [self-hosted, Linux]
+    needs: [zstandard_native_publish, linux_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_linux && flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_linux
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_linux.zip ./zstandard_linux
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_linux.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  web_publish_dry_run:
+    name: Dry Run Publish Web
+    runs-on: [self-hosted, macOS, X64]
+    needs: zstandard_native_publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_web && flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_web
+        run: dart pub publish --dry-run
+
+  web_publish:
+    name: Publish Web
+    runs-on: [self-hosted, macOS, X64]
+    needs: [zstandard_native_publish, web_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_web && flutter pub get
+
+      - name: Publish
+        working-directory: zstandard_web
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_web.zip ./zstandard_web
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_web.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cli_publish_dry_run:
+    name: Dry Run Publish CLI
+    runs-on: [self-hosted, macOS, X64]
+    needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_cli && dart pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard_cli
+        run: dart pub publish --dry-run
+
+  cli_publish:
+    name: Publish CLI
+    runs-on: [self-hosted, macOS, X64]
+    needs: [zstandard_native_publish, cli_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard_cli && dart pub get
+
+      - name: Publish
+        working-directory: zstandard_cli
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard_cli.zip ./zstandard_cli
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard_cli.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  zstandard_publish_dry_run:
+    name: Dry Run Publish Zstandard
+    runs-on: [self-hosted, macOS, X64]
+    needs: [android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard && flutter pub get
+
+      - name: Publish Dry Run
+        working-directory: zstandard
+        run: dart pub publish --dry-run
+
+  zstandard_publish:
+    name: Publish Zstandard
+    runs-on: [self-hosted, macOS, X64]
+    needs: [zstandard_native_publish, zstandard_publish_dry_run]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update branch
+        run: |
+          git pull origin ${{ github.ref }} --rebase
+
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Wait for dependency to be available
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 120
+          max_attempts: 200
+          command: cd zstandard && flutter pub get
+
+      - name: Publish
+        working-directory: zstandard
+        run: dart pub publish -f
+
+      - name: Compress folder
+        run: zip -r zstandard.zip ./zstandard
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          files: "./zstandard.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  rollback_guide:
+    name: Rollback / recovery guide
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [ platform_interface_publish, zstandard_native_publish, android_publish, ios_publish, web_publish, macos_publish, linux_publish, windows_publish, cli_publish, zstandard_publish ]
+    permissions:
+      contents: read
+    steps:
+      - name: Output rollback guide
+        if: >-
+          needs.platform_interface_publish.result == 'failure' ||
+          needs.zstandard_native_publish.result == 'failure' ||
+          needs.android_publish.result == 'failure' ||
+          needs.ios_publish.result == 'failure' ||
+          needs.web_publish.result == 'failure' ||
+          needs.macos_publish.result == 'failure' ||
+          needs.linux_publish.result == 'failure' ||
+          needs.windows_publish.result == 'failure' ||
+          needs.cli_publish.result == 'failure' ||
+          needs.zstandard_publish.result == 'failure'
+        run: |
+          echo "## Release failed – recovery guide" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Version: **${{ github.event.inputs.version }}**" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### pub.dev cannot delete published versions. If some packages were published:" >> "$GITHUB_STEP_SUMMARY"
+          echo "1. Decide whether to publish the remaining packages manually or bump to a new patch version." >> "$GITHUB_STEP_SUMMARY"
+          echo "2. To finish manually: run \`dart pub publish -f\` in each package directory (in dependency order: platform_interface → zstandard_native → platforms → cli → zstandard)." >> "$GITHUB_STEP_SUMMARY"
+          echo "3. Ensure \`dart pub login\` has been run on the runners (pub credentials available)." >> "$GITHUB_STEP_SUMMARY"
+          echo "4. Re-run this workflow with the same version only to retry failed jobs; fix the cause first." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Dependency order for manual publish:" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "zstandard_platform_interface → zstandard_native → zstandard_android, zstandard_ios, zstandard_web, zstandard_macos, zstandard_windows, zstandard_linux → zstandard_cli → zstandard" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "See \`docs/deployment/RUNBOOK.md\` for full runbook." >> "$GITHUB_STEP_SUMMARY"
+
+  notify_deploy_completed:
+    name: Notify deploy completed
+    runs-on: ubuntu-latest
+    needs: [ zstandard_publish ]
+    steps:
+      - name: Git Board Flow - Deploy success notification
+        uses: vypdev/copilot@v2
+        with:
+          debug: ${{ vars.DEBUG }}
+          single-action: 'deployed_action'
+          single-action-issue: '${{ github.event.inputs.issue }}'
+          token: ${{ secrets.PAT }}

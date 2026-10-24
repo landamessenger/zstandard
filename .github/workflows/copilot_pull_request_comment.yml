@@ -1,25 +1,24 @@
 name: Copilot - Pull Request Comment
-
-on:
+'on':
   pull_request_review_comment:
-    types: [created, edited]
-
+    types:
+      - created
+      - edited
 jobs:
   copilot-pull-requests:
-    name: Copilot - Pull Request Comment
-    runs-on: ubuntu-latest
+    if: ${{ (vars.COPILOT_BOT_LOGIN == '' || github.actor != vars.COPILOT_BOT_LOGIN) && github.event.pull_request.head.repo.full_name == github.repository }}
+    uses: vypdev/copilot/.github/workflows/copilot_comment_runtime.yml@v3
     permissions:
-      contents: write
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - uses: vypdev/copilot@v2
-        with:
-          ai-ignore-files: build/*
-          debug: ${{ vars.DEBUG }}
-          opencode-model: ${{ vars.OPENCODE_MODEL }}
-          project-ids: ${{ vars.PROJECT_IDS }}
-          token: ${{ secrets.PAT }}
-          bugbot-fix-verify-commands: ${{ vars.BUGBOT_AUTOFIX_VERIFY_COMMANDS }}
-          
+      checks: write
+      contents: read
+    with:
+      runs-on: '{"group":"vypdev","labels":["self-hosted","codex","Linux"]}'
+    secrets:
+      PAT: ${{ secrets.PAT }}
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      CURSOR_API_KEY: ${{ (vars.AGENT_PROVIDER == 'cursor' || vars.FINDINGS_PROVIDER == 'cursor' || vars.FIXER_PROVIDER == 'cursor' || vars.PLANNER_PROVIDER == 'cursor' || vars.REVIEWER_PROVIDER == 'cursor' || vars.TESTER_PROVIDER == 'cursor') && secrets.CURSOR_API_KEY || '' }}
+      CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}

@@ -1,0 +1,55 @@
+name: Prepare native Windows Flutter
+description: Select Git Bash instead of the WSL launcher, then install the reviewed Flutter SDK.
+inputs:
+  flutter-version:
+    description: Exact Flutter SDK version used by repository validation.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Select Git Bash for composite actions
+      shell: cmd
+      run: |
+        @echo off
+        if not exist "%ProgramFiles%\Git\bin\bash.exe" (
+          echo Expected the runner's Git for Windows Bash executable. 1>&2
+          exit /b 1
+        )
+        echo %ProgramFiles%\Git\bin>>"%GITHUB_PATH%"
+    - name: Prepare verified portable jq
+      shell: powershell
+      run: |
+        $ErrorActionPreference = 'Stop'
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $toolDirectory = Join-Path $env:RUNNER_TEMP 'zstandard-jq'
+        New-Item -ItemType Directory -Force -Path $toolDirectory | Out-Null
+        $executable = Join-Path $toolDirectory 'jq.exe'
+        Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-windows-amd64.exe' -OutFile $executable
+        $expected = '23cb60a1354eed6bcc8d9b9735e8c7b388cd1fdcb75726b93bc299ef22dd9334'
+        if ((Get-FileHash -Algorithm SHA256 $executable).Hash.ToLowerInvariant() -ne $expected) {
+          throw 'The downloaded jq executable does not match the reviewed checksum.'
+        }
+        Add-Content -Path $env:GITHUB_PATH -Value $toolDirectory
+    - name: Recover interrupted repository SDK extraction
+      shell: powershell
+      env:
+        SDK_TOOL_CACHE: ${{ runner.tool_cache }}
+        SDK_VERSION: ${{ inputs.flutter-version }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        if ($env:SDK_VERSION -notmatch '^\d+\.\d+\.\d+$') {
+          throw 'Expected an exact stable Flutter release version.'
+        }
+        $sdkDirectory = Join-Path (Join-Path $env:SDK_TOOL_CACHE 'zstandard-flutter-v2') "stable-$env:SDK_VERSION-x64"
+        $sdkRoot = Join-Path $sdkDirectory 'flutter'
+        $requiredFiles = @('bin\flutter.bat', 'bin\cache\dart-sdk\bin\dart.exe', 'packages\flutter_tools\bin\flutter_tools.dart', 'packages\flutter\lib\widgets.dart')
+        if ((Test-Path -LiteralPath $sdkDirectory) -and ($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $sdkRoot $_)) })) {
+          Write-Host 'Removing the incomplete repository-specific Flutter installation before preparing the SDK.'
+          Remove-Item -LiteralPath $sdkDirectory -Recurse -Force
+        }
+    - name: Prepare Flutter SDK
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version: ${{ inputs.flutter-version }}
+        cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'

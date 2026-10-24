@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -20,7 +19,10 @@ env:
 jobs:
   check_macos_analyze:
     name: Analyze macOS
-    runs-on: [self-hosted, macOS, ARM64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -30,7 +32,7 @@ jobs:
           package: zstandard_macos
           mode: save
 
-      - uses: ./.github/actions/setup-preinstalled-flutter
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -53,7 +55,10 @@ jobs:
 
   check_macos_test:
     name: Test macOS (${{ matrix.dependency_manager }}, ${{ matrix.source }})
-    runs-on: [self-hosted, macOS, ARM64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -69,7 +74,7 @@ jobs:
           package: zstandard_macos
           mode: save
 
-      - uses: ./.github/actions/setup-preinstalled-flutter
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -161,7 +166,10 @@ jobs:
 
   check_macos_publish_dry_run:
     name: Dry Run Publish macOS
-    runs-on: [self-hosted, macOS, ARM64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -171,7 +179,7 @@ jobs:
           package: zstandard_macos
           mode: save
 
-      - uses: ./.github/actions/setup-preinstalled-flutter
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 

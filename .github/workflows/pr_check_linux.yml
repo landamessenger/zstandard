@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -21,7 +20,10 @@ env:
 jobs:
   check_linux_analyze:
     name: Analyze Linux
-    runs-on: [self-hosted, Linux]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     steps:
       - uses: actions/checkout@v6
 
@@ -39,7 +41,10 @@ jobs:
 
   check_linux_test:
     name: Test Linux
-    runs-on: [self-hosted, Linux]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -86,7 +91,10 @@ jobs:
 
   check_linux_test_from_pub_cache:
     name: Test Linux (from pub cache)
-    runs-on: [self-hosted, Linux]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -136,7 +144,10 @@ jobs:
 
   check_linux_publish_dry_run:
     name: Dry Run Publish Linux
-    runs-on: [self-hosted, Linux]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     steps:
       - uses: actions/checkout@v6
 

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "runners": {
+    "mode": "manual-self-hosted",
+    "profileId": "",
+    "group": "vypdev",
+    "labels": [
+      "self-hosted",
+      "codex",
+      "Linux"
+    ],
+    "validation": "agent"
+  }
+}

@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -20,7 +19,10 @@ env:
 jobs:
   check_ios_analyze:
     name: Analyze iOS
-    runs-on: [self-hosted, macOS, ARM64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -30,7 +32,7 @@ jobs:
           package: zstandard_ios
           mode: save
 
-      - uses: ./.github/actions/setup-preinstalled-flutter
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -53,7 +55,10 @@ jobs:
 
   check_ios_test:
     name: Test iOS (${{ matrix.dependency_manager }}, ${{ matrix.source }})
-    runs-on: [self-hosted, macOS, ARM64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -69,7 +74,7 @@ jobs:
           package: zstandard_ios
           mode: save
 
-      - uses: ./.github/actions/setup-preinstalled-flutter
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -115,7 +120,9 @@ jobs:
 
       - name: Build iOS example
         working-directory: zstandard_ios/example
-        run: flutter build ios --simulator --debug --no-codesign
+        run: |
+          set -o pipefail
+          flutter build ios --simulator --debug --no-codesign --verbose 2>&1 | tee "$RUNNER_TEMP/ios-build.log"
 
       - name: Copy generated Flutter framework for SwiftPM integration tests
         if: matrix.dependency_manager == 'swiftpm' && matrix.source == 'pub-cache'
@@ -133,14 +140,14 @@ jobs:
           fi
           cp -R "$framework_package" "$framework_copy"
 
-      - name: Boot iOS simulator headlessly
-        run: |
-          chmod +x scripts/manage_ios_simulator.sh
-          ./scripts/manage_ios_simulator.sh start
+      - name: Boot an isolated iOS simulator
+        id: ios-simulator
+        timeout-minutes: 4
+        run: python3 .github/scripts/start_ios_simulator.py
 
       - name: Run integration tests
         run: |
-          DEVICE_ID=$(./scripts/manage_ios_simulator.sh device-id)
+          DEVICE_ID="${{ steps.ios-simulator.outputs.device-id }}"
           cd zstandard_ios/example
           bash ../../scripts/run_with_timeout.sh 900 \
             flutter test integration_test/ios_integration_test.dart \
@@ -149,7 +156,7 @@ jobs:
       - name: Capture iOS simulator diagnostics
         if: failure()
         run: |
-          DEVICE_ID=$(./scripts/manage_ios_simulator.sh device-id)
+          DEVICE_ID="${{ steps.ios-simulator.outputs.device-id }}"
           {
             echo '--- installed applications ---'
             xcrun simctl listapps "$DEVICE_ID" || true
@@ -165,12 +172,18 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: ios-simulator-diagnostics-${{ matrix.dependency_manager }}-${{ matrix.source }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/ios-simulator-diagnostics.txt
+          path: |
+            ${{ runner.temp }}/ios-simulator-diagnostics.txt
+            ${{ runner.temp }}/ios-build.log
           if-no-files-found: ignore
 
-      - name: Stop iOS simulator
-        if: always()
-        run: ./scripts/manage_ios_simulator.sh stop
+      - name: Remove this job's iOS simulator
+        if: ${{ always() && steps.ios-simulator.outputs.device-id != '' }}
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
+        run: |
+          xcrun simctl shutdown "$DEVICE_ID" 2>/dev/null || true
+          xcrun simctl delete "$DEVICE_ID"
 
       - name: Remove temporary SwiftPM framework copy
         if: always() && matrix.dependency_manager == 'swiftpm' && matrix.source == 'pub-cache'
@@ -193,7 +206,10 @@ jobs:
 
   check_ios_publish_dry_run:
     name: Dry Run Publish iOS
-    runs-on: [self-hosted, macOS, ARM64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -203,7 +219,7 @@ jobs:
           package: zstandard_ios
           mode: save
 
-      - uses: ./.github/actions/setup-preinstalled-flutter
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 

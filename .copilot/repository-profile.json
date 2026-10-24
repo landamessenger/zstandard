@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 2,
+  "generator": {
+    "name": "@vypdev/copilot",
+    "contractVersion": 2
+  },
+  "issueWorkflows": {
+    "enabled": [
+      "feature",
+      "bugfix",
+      "documentation",
+      "chore",
+      "help",
+      "hotfix",
+      "release"
+    ],
+    "formsEnabled": true,
+    "forms": {
+      "feature": {
+        "template": "feature_request.yml",
+        "labels": [
+          "enhancement",
+          "feature"
+        ],
+        "formLabels": [
+          "enhancement",
+          "feature",
+          "priority: low"
+        ],
+        "nativeIssueType": "Feature",
+        "createsManagedBranch": true,
+        "branchPrefix": "feature",
+        "requiredFields": [
+          "Description of the idea or improvement",
+          "Current limitations or challenges",
+          "Expected impact"
+        ],
+        "workflow": null
+      },
+      "bugfix": {
+        "template": "bug_report.yml",
+        "labels": [
+          "bug",
+          "bugfix"
+        ],
+        "formLabels": [
+          "bug",
+          "bugfix",
+          "priority: high"
+        ],
+        "nativeIssueType": "Bug",
+        "createsManagedBranch": true,
+        "branchPrefix": "bugfix",
+        "requiredFields": [
+          "Description",
+          "Reproducing the issue",
+          "copilot Version"
+        ],
+        "workflow": null
+      },
+      "documentation": {
+        "template": "doc_update.yml",
+        "labels": [
+          "documentation",
+          "docs"
+        ],
+        "formLabels": [
+          "documentation",
+          "docs",
+          "priority: low"
+        ],
+        "nativeIssueType": "Documentation",
+        "createsManagedBranch": true,
+        "branchPrefix": "docs",
+        "requiredFields": [
+          "Describe the documentation update",
+          "Why is this update needed?"
+        ],
+        "workflow": null
+      },
+      "chore": {
+        "template": "chore_task.yml",
+        "labels": [
+          "chore",
+          "maintenance"
+        ],
+        "formLabels": [
+          "chore",
+          "maintenance",
+          "priority: low"
+        ],
+        "nativeIssueType": "Maintenance",
+        "createsManagedBranch": true,
+        "branchPrefix": "chore",
+        "requiredFields": [
+          "Task description",
+          "Current issues or inefficiencies",
+          "Expected impact"
+        ],
+        "workflow": null
+      },
+      "help": {
+        "template": "help_request.yml",
+        "labels": [
+          "help",
+          "question"
+        ],
+        "formLabels": [
+          "help",
+          "question",
+          "priority: medium"
+        ],
+        "nativeIssueType": "Help",
+        "createsManagedBranch": false,
+        "branchPrefix": null,
+        "requiredFields": [
+          "Describe your problem or question"
+        ],
+        "workflow": null
+      },
+      "hotfix": {
+        "template": "hotfix.yml",
+        "labels": [
+          "hotfix"
+        ],
+        "formLabels": [
+          "hotfix",
+          "priority: high"
+        ],
+        "nativeIssueType": "Hotfix",
+        "createsManagedBranch": true,
+        "branchPrefix": "hotfix",
+        "requiredFields": [
+          "Base Version",
+          "Hotfix Version",
+          "Issue Description",
+          "Hotfix Solution",
+          "Additional Context"
+        ],
+        "workflow": "hotfix_workflow.yml"
+      },
+      "release": {
+        "template": "release.yml",
+        "labels": [
+          "release"
+        ],
+        "formLabels": [
+          "release",
+          "priority: medium"
+        ],
+        "nativeIssueType": "Release",
+        "createsManagedBranch": true,
+        "branchPrefix": "release",
+        "requiredFields": [
+          "Release Type",
+          "Release Version",
+          "Changelog",
+          "Additional Context"
+        ],
+        "workflow": "release_workflow.yml"
+      }
+    }
+  },
+  "branches": {
+    "remoteLifecycleOwner": "github-action",
+    "issueManagedBranches": true,
+    "preBranchSdd": true,
+    "startLabel": "in-progress",
+    "readyLabel": "branched",
+    "helpCreatesBranch": false
+  },
+  "pullRequests": {
+    "mustLinkIssue": true
+  },
+  "deployment": {
+    "agentMayInitiateWithoutExplicitAuthorization": false,
+    "launcherLabel": "deploy"
+  },
+  "installation": {
+    "lifecycleOwner": "setup-cli",
+    "branchNamespace": "setup/copilot/<operation-id>",
+    "requiresIssue": false,
+    "automaticMerge": false
+  }
+}

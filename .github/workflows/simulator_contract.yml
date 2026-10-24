@@ -1,0 +1,24 @@
+name: iOS simulator contract
+on:
+  pull_request:
+    paths:
+      - '.github/scripts/start_ios_simulator.py'
+      - '.github/scripts/tests/test_ios_simulator.py'
+      - '.github/workflows/pr_check_ios.yml'
+      - '.github/workflows/simulator_contract.yml'
+jobs:
+  simulator-contract:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s .github/scripts/tests -p test_ios_simulator.py -v

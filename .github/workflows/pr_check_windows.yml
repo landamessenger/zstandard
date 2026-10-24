@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -21,12 +20,15 @@ env:
 jobs:
   check_windows_analyze:
     name: Analyze Windows
-    runs-on: [self-hosted, Windows, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-preinstalled-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -42,12 +44,15 @@ jobs:
 
   check_windows_test:
     name: Test Windows
-    runs-on: [self-hosted, Windows, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-preinstalled-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -113,12 +118,15 @@ jobs:
 
   check_windows_test_from_pub_cache:
     name: Test Windows (from pub cache)
-    runs-on: [self-hosted, Windows, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-preinstalled-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -189,12 +197,15 @@ jobs:
 
   check_windows_federated_example:
     name: Test federated Windows example
-    runs-on: [self-hosted, Windows, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-preinstalled-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -217,12 +228,15 @@ jobs:
 
   check_windows_publish_dry_run:
     name: Dry Run Publish Windows
-    runs-on: [self-hosted, Windows, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-preinstalled-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 

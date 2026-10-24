@@ -1,0 +1,22 @@
+name: Android SDK provisioning contract
+on:
+  pull_request:
+    paths:
+      - scripts/run_android_emulator_ci.sh
+      - scripts/tests/test_android_sdk_provisioning.py
+      - .github/workflows/android_sdk_contract.yml
+permissions:
+  contents: read
+jobs:
+  sdk-provisioning:
+    name: Android tools-only SDK provisioning
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: python3 scripts/tests/test_android_sdk_provisioning.py
