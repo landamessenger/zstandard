@@ -85,8 +85,7 @@ jobs:
           avd-name: zstandard_ci_test
           emulator-port: 5554
           script: |
-            cd zstandard_android/example
-            env HOME="$ZSTANDARD_FLUTTER_PROFILE" XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_PROFILE/config" flutter test integration_test/ -d emulator-${EMULATOR_PORT}
+            cd zstandard_android/example && env HOME="$ZSTANDARD_FLUTTER_PROFILE" XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_PROFILE/config" flutter test integration_test/ -d emulator-${EMULATOR_PORT}
 
   check_android_test_from_pub_cache:
     name: Test Android (from pub cache)
@@ -144,8 +143,7 @@ jobs:
           avd-name: zstandard_ci_test_pubcache
           emulator-port: 5556
           script: |
-            cd zstandard_android/example
-            env HOME="$ZSTANDARD_FLUTTER_PROFILE" XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_PROFILE/config" flutter test integration_test/ -d emulator-${EMULATOR_PORT}
+            cd zstandard_android/example && env HOME="$ZSTANDARD_FLUTTER_PROFILE" XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_PROFILE/config" flutter test integration_test/ -d emulator-${EMULATOR_PORT}
 
   check_android_publish_dry_run:
     name: Dry Run Publish Android
