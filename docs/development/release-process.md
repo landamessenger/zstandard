@@ -79,4 +79,6 @@ The hotfix workflow uses the same `prepare-package-release` composite action as 
 
 The shared action validates existing files without rewriting them in release resume mode. Three contract tests execute the real Dart metadata tools against isolated package trees and verify preparation, idempotency, and rejection of corrupt resumed artifacts. The fixture replaces only Emscripten compilation; the Web CI retains real canonical Wasm regeneration. Final pub.dev verification provisions Dart through the same pinned Flutter action in every matrix job.
 
+Before checkout or write access, hotfix preparation requires the dispatch ref to match `hotfix/<version>` (or the configured `HOTFIX_TREE` prefix). Two admission tests execute the actual validation script across six refs: matching default/custom prefixes succeed, while `master`, `develop`, tags and a different version fail. Publication and resume retain their separate accepted-production validation.
+
 The hotfix publisher currently records the accepted tag and GitHub Release through Copilot; it does not run the ten-package pub.dev pipeline. Package publication requires the full release workflow and its platform candidate checks. Do not treat the hotfix GitHub Release as proof of pub.dev publication.

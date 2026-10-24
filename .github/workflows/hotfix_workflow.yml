@@ -55,6 +55,8 @@ jobs:
           ISSUE: ${{ inputs.issue }}
           TITLE: ${{ inputs.title }}
           CHANGELOG: ${{ inputs.changelog }}
+          HOTFIX_REF: ${{ github.ref }}
+          HOTFIX_TREE: ${{ vars.HOTFIX_TREE || 'hotfix' }}
         with:
           script: |
             const mode = process.env.MODE;
@@ -68,6 +70,7 @@ jobs:
             if (!/^[1-9][0-9]*$/.test(issueText) || !Number.isSafeInteger(issue) || issue < 1) errors.push('Issue must be a positive safe integer.');
             if (!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(version)) errors.push('Version must use MAJOR.MINOR.PATCH.');
             if (mode === 'prepare') {
+              if (process.env.HOTFIX_REF !== `refs/heads/${process.env.HOTFIX_TREE}/${version}`) errors.push('Preparation requires the matching hotfix branch for this version.');
               if (operationId) errors.push('Operation ID must be empty in prepare mode.');
               if (!title || title.length > 1000) errors.push('Title must contain 1-1000 characters.');
               if (!changelog || changelog.length > 50000) errors.push('Changelog must contain 1-50000 characters.');
