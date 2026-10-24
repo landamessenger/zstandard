@@ -1,0 +1,48 @@
+name: Linux private dependency contract
+on:
+  pull_request:
+    paths:
+      - .github/actions/setup-linux-dependencies/**
+      - .github/scripts/tests/verify_linux_prefix.sh
+      - .github/workflows/linux_dependency_contract.yml
+permissions:
+  contents: read
+jobs:
+  private-prefix:
+    name: Rootless Linux native toolchain
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Extract the real action script into a private fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="$(mktemp -d "$RUNNER_TEMP/zstandard-linux-contract.XXXXXX")"
+          python3 -m venv "$state/venv"
+          "$state/venv/bin/python" -m pip --isolated install --index-url https://pypi.org/simple PyYAML==6.0.3
+          "$state/venv/bin/python" - "$state" <<'PY'
+          from pathlib import Path
+          import sys, yaml
+          action = yaml.safe_load(Path('.github/actions/setup-linux-dependencies/action.yml').read_text())
+          Path(sys.argv[1], 'action.sh').write_text(action['runs']['steps'][0]['run'])
+          PY
+          cp .github/scripts/tests/verify_linux_prefix.sh "$state/check.sh"
+          echo "LINUX_CONTRACT_STATE=$state" >> "$GITHUB_ENV"
+      - name: Execute without privileges or a host Docker socket
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker_host="$(docker context inspect --format '{{.Endpoints.docker.Host}}')"
+          docker_config="$(mktemp -d "$RUNNER_TEMP/zstandard-contract-docker.XXXXXX")"
+          printf '{"auths":{"job-credentials.invalid":{}}}\n' > "$docker_config/config.json"
+          chmod 600 "$docker_config/config.json"
+          DOCKER_HOST="$docker_host" DOCKER_CONTEXT='' DOCKER_AUTH_CONFIG='' DOCKER_CONFIG="$docker_config" \
+            docker run --rm --platform linux/amd64 --cpus 1 --memory 4g --user 1000:1000 \
+              -e HOME=/tmp -v "$LINUX_CONTRACT_STATE:/contract:ro" ubuntu:24.04 \
+              /bin/bash /contract/check.sh

@@ -17,3 +17,9 @@ Apple integration tests require Xcode and an installed iOS runtime. CI creates
 and removes only its own simulator UUID. Setup does not install Xcode or accept
 Apple agreements. The reconciliation keeps develop's existing test matrices,
 coverage thresholds and complete package publication workflow.
+
+The Linux dependency action reuses installed packages and downloads missing
+packages into a private prefix with their dependency closure. It never runs
+sudo, package maintainer scripts, dpkg repair or host package installation.
+Headers, libraries and pkg-config metadata combine that prefix with read-only
+links to the installed toolchain. The host package database remains unchanged.
