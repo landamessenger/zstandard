@@ -44,13 +44,6 @@ avdmanager_bin="$(find_sdk_tool avdmanager)"
 adb_bin="$sdk_root/platform-tools/adb"
 emulator_bin="$sdk_root/emulator/emulator"
 
-for required_file in "$adb_bin" "$emulator_bin"; do
-  if [[ ! -x "$required_file" ]]; then
-    echo "Required Android SDK executable is missing: ${required_file}" >&2
-    exit 1
-  fi
-done
-
 export ANDROID_HOME="$sdk_root"
 export ANDROID_SDK_ROOT="$sdk_root"
 export PATH="$sdk_root/platform-tools:$sdk_root/emulator:$PATH"
@@ -65,6 +58,15 @@ set -o pipefail
   emulator \
   "platforms;android-${api_level}" \
   "system-images;android-${api_level};${target};${arch}" >/dev/null
+
+# A runner may initially contain only command-line tools. Validate emulator
+# executables after sdkmanager installs them, never before provisioning.
+for required_file in "$adb_bin" "$emulator_bin"; do
+  if [[ ! -x "$required_file" ]]; then
+    echo "Required Android SDK executable is missing after provisioning: ${required_file}" >&2
+    exit 1
+  fi
+done
 
 echo "Creating AVD ${avd_name}..."
 echo no | "$avdmanager_bin" create avd \
