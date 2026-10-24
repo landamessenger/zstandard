@@ -100,80 +100,14 @@ jobs:
           fi
           echo "release_tag=$tag" >> "$GITHUB_OUTPUT"
 
-      - name: Verify preinstalled Flutter
-        if: ${{ !inputs.resume }}
-        uses: ./.github/actions/setup-flutter
+      - name: Prepare package versions and generated artifacts
+        uses: ./.github/actions/prepare-package-release
         with:
+          version: ${{ inputs.version }}
+          title: ${{ inputs.title }}
+          changelog: ${{ inputs.changelog }}
           flutter-version: ${{ env.FLUTTER_VERSION }}
-
-      - name: Update root CHANGELOG.md
-        if: ${{ !inputs.resume }}
-        env:
-          VERSION: ${{ inputs.version }}
-          TITLE: ${{ inputs.title }}
-          CHANGELOG_BODY: ${{ inputs.changelog }}
-        run: |
-          set -euo pipefail
-          if ! grep -Fq "## $VERSION - $TITLE" CHANGELOG.md; then
-            {
-              echo "## $VERSION - $TITLE"
-              echo
-              printf '%s\n' "$CHANGELOG_BODY"
-              echo
-              cat CHANGELOG.md
-            } > CHANGELOG.md.new
-            mv CHANGELOG.md.new CHANGELOG.md
-          fi
-
-      - name: Copy CHANGELOG.md to all published packages
-        if: ${{ !inputs.resume }}
-        run: |
-          set -euo pipefail
-          for package in \
-            zstandard_platform_interface zstandard_native zstandard_android \
-            zstandard_ios zstandard_macos zstandard_windows zstandard_linux \
-            zstandard_web zstandard_cli zstandard; do
-            cp CHANGELOG.md "$package/CHANGELOG.md"
-          done
-
-      - name: Update package, SwiftPM and CocoaPods versions
-        if: ${{ !inputs.resume }}
-        env:
-          VERSION: ${{ inputs.version }}
-        run: dart run .github/scripts/update_versions.dart "$VERSION" --release
-
-      - name: Regenerate WebAssembly from canonical C source
-        if: ${{ !inputs.resume }}
-        env:
-          # The script uses this only for the read-only emsdk fetch.
-          GITHUB_TOKEN: ${{ github.token }}
-        run: bash scripts/build_web_wasm.sh
-
-      - name: Validate release metadata and generated artifacts
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          printf 'dependency_overrides:\n  zstandard_native:\n    path: ../zstandard_native\n' > zstandard_cli/pubspec_overrides.yaml
-          trap 'rm -f zstandard_cli/pubspec_overrides.yaml' EXIT
-          dart scripts/check_pub_metadata.dart --release-version "$VERSION"
-          git diff --check
-          for generated in \
-            zstandard_web/blob/zstd.js \
-            zstandard_web/example/web/zstd.js \
-            zstandard/example/web/zstd.js; do
-            test -s "$generated"
-          done
-          for generated in \
-            zstandard_web/blob/zstd.wasm \
-            zstandard_web/example/web/zstd.wasm \
-            zstandard/example/web/zstd.wasm; do
-            test -s "$generated"
-          done
-          cmp zstandard_web/blob/zstd.js zstandard_web/example/web/zstd.js
-          cmp zstandard_web/blob/zstd.js zstandard/example/web/zstd.js
-          cmp zstandard_web/blob/zstd.wasm zstandard_web/example/web/zstd.wasm
-          cmp zstandard_web/blob/zstd.wasm zstandard/example/web/zstd.wasm
+          resume: ${{ inputs.resume }}
 
       - name: Commit and push release preparation
         if: ${{ !inputs.resume }}
@@ -1137,6 +1071,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: refs/tags/v${{ inputs.version }}
+      - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
       - name: Verify immutable package version
         run: dart run scripts/wait_for_pub_version.dart "${{ matrix.package }}" "${{ inputs.version }}" 1200
 

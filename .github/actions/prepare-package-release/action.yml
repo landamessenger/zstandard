@@ -1,0 +1,100 @@
+name: Prepare federated package release
+description: Update and validate all package versions, changelogs and WebAssembly artifacts.
+inputs:
+  version:
+    required: true
+    description: Stable SemVer selected by the caller.
+  title:
+    required: true
+    description: Changelog heading.
+  changelog:
+    required: true
+    description: Changelog text.
+  flutter-version:
+    required: true
+    description: Pinned Flutter SDK.
+  resume:
+    required: false
+    default: 'false'
+    description: Validate an existing candidate without changing its files.
+runs:
+  using: composite
+  steps:
+    - name: Verify preinstalled Flutter
+      uses: ./.github/actions/setup-flutter
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+
+    - name: Update root CHANGELOG.md
+      if: inputs.resume != 'true'
+      env:
+        VERSION: ${{ inputs.version }}
+        TITLE: ${{ inputs.title }}
+        CHANGELOG_BODY: ${{ inputs.changelog }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if ! grep -Fq "## $VERSION - $TITLE" CHANGELOG.md; then
+          {
+            echo "## $VERSION - $TITLE"
+            echo
+            printf '%s\n' "$CHANGELOG_BODY"
+            echo
+            cat CHANGELOG.md
+          } > CHANGELOG.md.new
+          mv CHANGELOG.md.new CHANGELOG.md
+        fi
+
+    - name: Copy CHANGELOG.md to all published packages
+      if: inputs.resume != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        for package in \
+          zstandard_platform_interface zstandard_native zstandard_android \
+          zstandard_ios zstandard_macos zstandard_windows zstandard_linux \
+          zstandard_web zstandard_cli zstandard; do
+          cp CHANGELOG.md "$package/CHANGELOG.md"
+        done
+
+    - name: Update package, SwiftPM and CocoaPods versions
+      if: inputs.resume != 'true'
+      env:
+        VERSION: ${{ inputs.version }}
+      shell: bash
+      run: dart run .github/scripts/update_versions.dart "$VERSION" --release
+
+    - name: Regenerate WebAssembly from canonical C source
+      if: inputs.resume != 'true'
+      env:
+        # The script uses this only for the read-only emsdk fetch.
+        GITHUB_TOKEN: ${{ github.token }}
+      shell: bash
+      run: bash scripts/build_web_wasm.sh
+
+    - name: Validate release metadata and generated artifacts
+      env:
+        VERSION: ${{ inputs.version }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        printf 'dependency_overrides:\n  zstandard_native:\n    path: ../zstandard_native\n' > zstandard_cli/pubspec_overrides.yaml
+        trap 'rm -f zstandard_cli/pubspec_overrides.yaml' EXIT
+        dart scripts/check_pub_metadata.dart --release-version "$VERSION"
+        git diff --check
+        for generated in \
+          zstandard_web/blob/zstd.js \
+          zstandard_web/example/web/zstd.js \
+          zstandard/example/web/zstd.js; do
+          test -s "$generated"
+        done
+        for generated in \
+          zstandard_web/blob/zstd.wasm \
+          zstandard_web/example/web/zstd.wasm \
+          zstandard/example/web/zstd.wasm; do
+          test -s "$generated"
+        done
+        cmp zstandard_web/blob/zstd.js zstandard_web/example/web/zstd.js
+        cmp zstandard_web/blob/zstd.js zstandard/example/web/zstd.js
+        cmp zstandard_web/blob/zstd.wasm zstandard_web/example/web/zstd.wasm
+        cmp zstandard_web/blob/zstd.wasm zstandard/example/web/zstd.wasm

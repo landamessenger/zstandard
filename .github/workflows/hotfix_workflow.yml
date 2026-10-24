@@ -84,25 +84,57 @@ jobs:
       group: vypdev
       labels:
         - self-hosted
-        - codex
-        - Linux
+        - macOS
+        - ARM64
     needs: validate
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v5
         with:
           persist-credentials: true
-      # Add project-specific version, build, validation, smoke-test and generated-file steps here.
-      - name: Commit prepared hotfix files
-        uses: EndBug/add-and-commit@v9
+      - name: Prepare package versions and generated artifacts
+        uses: ./.github/actions/prepare-package-release
         with:
-          add: './'
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
-          default_author: user_info
-          message: 'gh-action: prepare hotfix ${{ inputs.version }}'
+          version: ${{ inputs.version }}
+          title: ${{ inputs.title }}
+          changelog: ${{ inputs.changelog }}
+          flutter-version: '3.47.2'
+
+      - name: Commit and push hotfix preparation
+        env:
+          VERSION: ${{ inputs.version }}
+          HOTFIX_BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git config user.name 'GitHub Actions'
+          git config user.email 'actions@github.com'
+          git add -- \
+            CHANGELOG.md \
+            zstandard/pubspec.yaml zstandard/CHANGELOG.md \
+            zstandard_android/pubspec.yaml zstandard_android/CHANGELOG.md \
+            zstandard_cli/pubspec.yaml zstandard_cli/CHANGELOG.md \
+            zstandard_ios/pubspec.yaml zstandard_ios/CHANGELOG.md \
+            zstandard_ios/ios/zstandard_ios/Package.swift \
+            zstandard_ios/ios/zstandard_ios.podspec \
+            zstandard_linux/pubspec.yaml zstandard_linux/CHANGELOG.md \
+            zstandard_macos/pubspec.yaml zstandard_macos/CHANGELOG.md \
+            zstandard_macos/macos/zstandard_macos/Package.swift \
+            zstandard_macos/macos/zstandard_macos.podspec \
+            zstandard_native/pubspec.yaml zstandard_native/CHANGELOG.md \
+            zstandard_platform_interface/pubspec.yaml zstandard_platform_interface/CHANGELOG.md \
+            zstandard_web/pubspec.yaml zstandard_web/CHANGELOG.md \
+            zstandard_web/blob/zstd.js zstandard_web/blob/zstd.wasm \
+            zstandard_web/example/web/zstd.js zstandard_web/example/web/zstd.wasm \
+            zstandard/example/web/zstd.js zstandard/example/web/zstd.wasm \
+            zstandard_windows/pubspec.yaml zstandard_windows/CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo 'Hotfix preparation is already committed.'
+            exit 0
+          fi
+          git commit -m "gh-action: Prepare hotfix $VERSION"
+          git push origin "HEAD:$HOTFIX_BRANCH"
 
   promote:
     name: Open production promotion

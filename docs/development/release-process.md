@@ -75,4 +75,8 @@ After publication, a separate workflow integrates the release branch into `devel
 
 ## Hotfixes
 
-For critical fixes, the project may use a **hotfix** workflow (see `.github/workflows/hotfix_workflow.yml` and issue templates). Follow the same versioning and publish order; use a PATCH bump (e.g. 1.5.0 → 1.4.1).
+The hotfix workflow uses the same `prepare-package-release` composite action as the release workflow before opening production promotion. It provisions Flutter 3.47.2, updates all ten package versions and changelogs, pins Apple manifests, regenerates Wasm, and validates metadata and matching generated artifacts. Its preparation commit stages only the explicit release files. Use a PATCH bump (e.g. 1.5.0 → 1.5.1).
+
+The shared action validates existing files without rewriting them in release resume mode. Three contract tests execute the real Dart metadata tools against isolated package trees and verify preparation, idempotency, and rejection of corrupt resumed artifacts. The fixture replaces only Emscripten compilation; the Web CI retains real canonical Wasm regeneration. Final pub.dev verification provisions Dart through the same pinned Flutter action in every matrix job.
+
+The hotfix publisher currently records the accepted tag and GitHub Release through Copilot; it does not run the ten-package pub.dev pipeline. Package publication requires the full release workflow and its platform candidate checks. Do not treat the hotfix GitHub Release as proof of pub.dev publication.

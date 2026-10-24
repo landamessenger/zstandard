@@ -108,7 +108,7 @@ The workflow uses **self-hosted** runners for macOS, Linux, and Windows to build
 
 **File**: [`.github/workflows/hotfix_workflow.yml`](https://github.com/vypdev/zstandard/blob/master/.github/workflows/hotfix_workflow.yml)
 
-Used for expedited fixes (e.g. security or critical bugs). Typically triggered manually and may skip some steps or use a shorter path to release. See the workflow file and team docs for details.
+Prepares versioned fixes through the same `prepare-package-release` action as releases, using the ARM64 macOS runner for pinned Flutter, package/Apple metadata and generated Wasm verification. The action has a three-case contract test budget, including idempotent preparation and corrupt-artifact rejection on resume. Copilot then manages production promotion and its accepted tag/GitHub Release. This hotfix route does not publish packages to pub.dev; use the complete release pipeline for package publication. See [Release process](release-process.md).
 
 ## Running checks locally
 
