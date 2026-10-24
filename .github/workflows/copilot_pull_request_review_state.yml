@@ -17,7 +17,7 @@ jobs:
         - Linux
     timeout-minutes: 120
     concurrency:
-      group: copilot-pr-${{ github.repository }}-${{ github.event.pull_request.head.ref || github.ref_name }}-review-state
+      group: copilot-pr-${{ github.repository }}-${{ github.event.pull_request.number }}-review-state
       cancel-in-progress: true
     permissions:
       checks: write
