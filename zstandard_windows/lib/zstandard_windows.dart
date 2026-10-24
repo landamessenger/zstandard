@@ -22,6 +22,27 @@ final DynamicLibrary _dylib = () {
 
 final ZstandardNativeBindings _bindings = ZstandardNativeBindings(_dylib);
 
+bool _hasZstdFrameMagic(Uint8List data) {
+  if (data.lengthInBytes < 4) {
+    return false;
+  }
+
+  final int magic =
+      data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+  return magic == ZSTD_MAGICNUMBER ||
+      (magic & ZSTD_MAGIC_SKIPPABLE_MASK) == ZSTD_MAGIC_SKIPPABLE_START;
+}
+
+bool _isUnavailableContentSize(int size) {
+  // The generated bindings expose these C unsigned values as -1 and -2.
+  // Keep the unsigned representations as a compatibility guard for older
+  // generated bindings and runtimes that returned the raw 64-bit bit pattern.
+  return size == ZSTD_CONTENTSIZE_UNKNOWN ||
+      size == ZSTD_CONTENTSIZE_ERROR ||
+      size == 0xffffffffffffffff ||
+      size == 0xfffffffffffffffe;
+}
+
 /// Windows implementation of [ZstandardPlatform] using FFI and the native zstd library.
 ///
 /// Loads zstandard_windows.dll and uses ZSTD_compress, ZSTD_decompress,
@@ -49,11 +70,20 @@ class ZstandardWindows extends ZstandardPlatform {
 
   @override
   Future<Uint8List?> compress(Uint8List data, int compressionLevel) async {
+    if (compressionLevel < 1 || compressionLevel > 22) {
+      return null;
+    }
+
     final int srcSize = data.lengthInBytes;
-    final Pointer<Uint8> src = malloc.allocate<Uint8>(srcSize);
+    final Pointer<Uint8> src =
+        malloc.allocate<Uint8>(srcSize > 0 ? srcSize : 1);
     src.asTypedList(srcSize).setAll(0, data);
 
     final int dstCapacity = _bindings.ZSTD_compressBound(srcSize);
+    if (_bindings.ZSTD_isError(dstCapacity) != 0 || dstCapacity <= 0) {
+      malloc.free(src);
+      return null;
+    }
     final Pointer<Uint8> dst = malloc.allocate<Uint8>(dstCapacity);
 
     try {
@@ -65,7 +95,7 @@ class ZstandardWindows extends ZstandardPlatform {
         compressionLevel,
       );
 
-      if (compressedSize > 0) {
+      if (_bindings.ZSTD_isError(compressedSize) == 0 && compressedSize > 0) {
         return Uint8List.fromList(dst.asTypedList(compressedSize));
       } else {
         return null;
@@ -78,8 +108,12 @@ class ZstandardWindows extends ZstandardPlatform {
 
   @override
   Future<Uint8List?> decompress(Uint8List data) async {
-    const int contentSizeUnknown = -1;
-    const int contentSizeError = -2;
+    // Avoid entering the native decoder for arbitrary input. Apart from
+    // being cheaper, this prevents malformed data from reaching an ABI
+    // boundary while the frame header is already known to be invalid.
+    if (!_hasZstdFrameMagic(data)) {
+      return null;
+    }
 
     final int compressedSize = data.lengthInBytes;
     final Pointer<Uint8> src = malloc.allocate<Uint8>(compressedSize);
@@ -87,12 +121,12 @@ class ZstandardWindows extends ZstandardPlatform {
 
     final int decompressedSizeExpected =
         _bindings.ZSTD_getFrameContentSize(src.cast(), compressedSize);
+    if (_isUnavailableContentSize(decompressedSizeExpected)) {
+      malloc.free(src);
+      return null;
+    }
     final int dstCapacity =
-        (decompressedSizeExpected != contentSizeUnknown &&
-                decompressedSizeExpected != contentSizeError &&
-                decompressedSizeExpected > 0)
-            ? decompressedSizeExpected
-            : compressedSize * 20;
+        decompressedSizeExpected > 0 ? decompressedSizeExpected : 1;
     final Pointer<Uint8> dst = malloc.allocate<Uint8>(dstCapacity);
 
     try {
@@ -103,7 +137,7 @@ class ZstandardWindows extends ZstandardPlatform {
         compressedSize,
       );
 
-      if (decompressedSize < 0) {
+      if (_bindings.ZSTD_isError(decompressedSize) != 0) {
         return null;
       }
       return Uint8List.fromList(dst.asTypedList(decompressedSize));
@@ -149,7 +183,7 @@ Future<int> compressAsync(
   int srcSize,
   int compressionLevel,
 ) async {
-  final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
+  final SendPort helperIsolateSendPort = await _getHelperIsolateSendPort();
   final int requestId = _nextCompressRequestId++;
   final _CompressRequest request = _CompressRequest(
       requestId, dst, dstCapacity, src, srcSize, compressionLevel);
@@ -165,7 +199,7 @@ Future<int> decompressAsync(
   Pointer<Void> src,
   int compressedSize,
 ) async {
-  final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
+  final SendPort helperIsolateSendPort = await _getHelperIsolateSendPort();
   final int requestId = _nextDecompressRequestId++;
   final _DecompressRequest request =
       _DecompressRequest(requestId, dst, dstCapacity, src, compressedSize);
@@ -227,53 +261,64 @@ final Map<int, Completer<int>> _compressRequests = <int, Completer<int>>{};
 final Map<int, Completer<int>> _decompressRequests = <int, Completer<int>>{};
 
 /// Port for sending requests to the auxiliary isolate.
-Future<SendPort> _helperIsolateSendPort = () async {
-  final Completer<SendPort> completer = Completer<SendPort>();
-  final ReceivePort receivePort = ReceivePort()
-    ..listen((dynamic data) {
-      if (data is SendPort) {
-        completer.complete(data);
-        return;
-      }
-      if (data is _CompressResponse) {
-        final Completer<int> completer = _compressRequests[data.id]!;
-        _compressRequests.remove(data.id);
-        completer.complete(data.result);
-        return;
-      }
-      if (data is _DecompressResponse) {
-        final Completer<int> completer = _decompressRequests[data.id]!;
-        _decompressRequests.remove(data.id);
-        completer.complete(data.result);
-        return;
-      }
-      throw UnsupportedError('Message type not supported: ${data.runtimeType}');
-    });
+// Start the worker lazily so importing the plugin cannot keep test processes
+// alive when the async helper API is not used.
+Future<SendPort>? _helperIsolateSendPort;
 
-  await Isolate.spawn((SendPort sendPort) async {
-    final ReceivePort helperReceivePort = ReceivePort()
-      ..listen((dynamic data) {
-        if (data is _CompressRequest) {
-          final int result = _bindings.ZSTD_compress(data.dst, data.dstCapacity,
-              data.src, data.srcSize, data.compressionLevel);
-          final _CompressResponse response = _CompressResponse(data.id, result);
-          sendPort.send(response);
-          return;
-        }
-        if (data is _DecompressRequest) {
-          final int result = _bindings.ZSTD_decompress(
-              data.dst, data.dstCapacity, data.src, data.compressedSize);
-          final _DecompressResponse response =
-              _DecompressResponse(data.id, result);
-          sendPort.send(response);
-          return;
-        }
-        throw UnsupportedError(
-            'Message type not supported: ${data.runtimeType}');
-      });
+Future<SendPort> _getHelperIsolateSendPort() =>
+    _helperIsolateSendPort ??= () async {
+      final Completer<SendPort> completer = Completer<SendPort>();
+      final ReceivePort receivePort = ReceivePort()
+        ..listen((dynamic data) {
+          if (data is SendPort) {
+            completer.complete(data);
+            return;
+          }
+          if (data is _CompressResponse) {
+            final Completer<int> completer = _compressRequests[data.id]!;
+            _compressRequests.remove(data.id);
+            completer.complete(data.result);
+            return;
+          }
+          if (data is _DecompressResponse) {
+            final Completer<int> completer = _decompressRequests[data.id]!;
+            _decompressRequests.remove(data.id);
+            completer.complete(data.result);
+            return;
+          }
+          throw UnsupportedError(
+              'Message type not supported: ${data.runtimeType}');
+        });
 
-    sendPort.send(helperReceivePort.sendPort);
-  }, receivePort.sendPort);
+      await Isolate.spawn((SendPort sendPort) async {
+        final ReceivePort helperReceivePort = ReceivePort()
+          ..listen((dynamic data) {
+            if (data is _CompressRequest) {
+              final int result = _bindings.ZSTD_compress(
+                  data.dst,
+                  data.dstCapacity,
+                  data.src,
+                  data.srcSize,
+                  data.compressionLevel);
+              final _CompressResponse response =
+                  _CompressResponse(data.id, result);
+              sendPort.send(response);
+              return;
+            }
+            if (data is _DecompressRequest) {
+              final int result = _bindings.ZSTD_decompress(
+                  data.dst, data.dstCapacity, data.src, data.compressedSize);
+              final _DecompressResponse response =
+                  _DecompressResponse(data.id, result);
+              sendPort.send(response);
+              return;
+            }
+            throw UnsupportedError(
+                'Message type not supported: ${data.runtimeType}');
+          });
 
-  return completer.future;
-}();
+        sendPort.send(helperReceivePort.sendPort);
+      }, receivePort.sendPort);
+
+      return completer.future;
+    }();

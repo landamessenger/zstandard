@@ -1,0 +1,41 @@
+name: Set up Flutter for CI
+description: Install a native Flutter SDK and isolate per-job Flutter settings.
+
+inputs:
+  flutter-version:
+    description: Flutter stable version to install.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version: ${{ inputs.flutter-version }}
+        architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+        cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
+        cache: true
+        pub-cache: false
+
+    - name: Isolate Flutter settings for concurrent Unix jobs
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        set -euo pipefail
+        state="$(mktemp -d "$RUNNER_TEMP/zstandard-flutter-profile.XXXXXX")"
+        mkdir -p "$state/home" "$state/bin"
+        cat > "$state/bin/flutter" <<'WRAPPER'
+        #!/bin/bash
+        set -euo pipefail
+        exec env HOME="$ZSTANDARD_FLUTTER_SETTINGS_HOME" \
+          XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_SETTINGS_HOME/.config" \
+          "$FLUTTER_ROOT/bin/flutter" "$@"
+        WRAPPER
+        chmod 700 "$state/bin/flutter"
+        {
+          printf 'ZSTANDARD_FLUTTER_SETTINGS_HOME=%s\n' "$state/home"
+          printf 'PUB_CACHE=%s\n' "${PUB_CACHE:-$HOME/.pub-cache}"
+        } >> "$GITHUB_ENV"
+        printf '%s\n' "$state/bin" >> "$GITHUB_PATH"

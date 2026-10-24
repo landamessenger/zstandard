@@ -13,7 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
+  # Keep CI aligned with the package constraints. The organisation-level
+  # FLUTTER_VERSION variable may intentionally point to an older SDK.
+  FLUTTER_VERSION: '3.47.2'
 
 jobs:
   check_web_analyze:
@@ -21,16 +23,13 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
-          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -45,16 +44,18 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-linux-dependencies
         with:
-          channel: 'stable'
+          desktop: 'true'
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_web
@@ -64,39 +65,141 @@ jobs:
         working-directory: zstandard_web/example
         run: flutter pub get
 
-      - name: Prepare matching Chrome for Testing and ChromeDriver
-        id: browser
+      - name: Set up Chrome and matching ChromeDriver
+        id: chrome
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
           install-chromedriver: true
+          install-dependencies: true
+
+      - name: Verify browser toolchain
+        run: |
+          set -euo pipefail
+          "${{ steps.chrome.outputs.chrome-path }}" --version
+          "${{ steps.chrome.outputs.chromedriver-path }}" --version
+
+      - name: Regenerate WebAssembly from canonical C source
+        env:
+          # Used only to authenticate the read-only fetch of the public emsdk
+          # repository on self-hosted networks that reject anonymous Git.
+          GITHUB_TOKEN: ${{ github.token }}
+          # Keep generated artifacts reproducible and reviewable. The script
+          # clones this exact official emsdk revision and installs Emscripten
+          # 3.1.69 before compiling zstandard_native/src/zstd.
+          EMSDK_REF: a36df02dc438e8b02f91122a4c62eeecb6784272
+          EMSCRIPTEN_VERSION: '3.1.69'
+        run: bash scripts/build_web_wasm.sh
+
+      - name: Verify generated WebAssembly is committed and synchronized
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff --exit-code -- \
+            zstandard_web/blob/zstd.js \
+            zstandard_web/example/web/zstd.js \
+            zstandard/example/web/zstd.js
+
+          # Emscripten/LLVM may choose a different valid WASM layout on
+          # different host architectures, even with the same SDK revision.
+          # The generator validates the module with the matching wasm-opt;
+          # here we ensure every checked-in consumer copy is synchronized.
+          for wasm_file in \
+            zstandard_web/blob/zstd.wasm \
+            zstandard_web/example/web/zstd.wasm \
+            zstandard/example/web/zstd.wasm; do
+            test -s "$wasm_file"
+          done
+          cmp zstandard_web/blob/zstd.wasm zstandard_web/example/web/zstd.wasm
+          cmp zstandard_web/blob/zstd.wasm zstandard/example/web/zstd.wasm
+
+      - name: Upload regenerated artifacts when verification fails
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: web-regenerated-artifacts-${{ github.run_id }}
+          if-no-files-found: error
+          path: |
+            zstandard_web/blob/zstd.js
+            zstandard_web/blob/zstd.wasm
+            zstandard_web/example/web/zstd.js
+            zstandard_web/example/web/zstd.wasm
+            zstandard/example/web/zstd.js
+            zstandard/example/web/zstd.wasm
+
+      - name: Build Web example
+        working-directory: zstandard_web/example
+        run: flutter build web --release
 
       - name: Run integration tests (flutter drive + ChromeDriver)
         working-directory: zstandard_web/example
         env:
-          CHROME_EXECUTABLE: ${{ steps.browser.outputs.chrome-path }}
-          CHROMEDRIVER_EXECUTABLE: ${{ steps.browser.outputs.chromedriver-path }}
-        run: bash "$GITHUB_WORKSPACE/.github/scripts/run-web-integration.sh"
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          set -euo pipefail
+          # ChromeDriver and Flutter must share the same display. Keeping the
+          # whole WebDriver session inside Xvfb also works on headless runners.
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" bash -c '
+            set -euo pipefail
+            DRIVER_LOG="$RUNNER_TEMP/chromedriver.log"
+            chromedriver --port=4444 > "$DRIVER_LOG" 2>&1 &
+            DRIVER_PID=$!
+            cleanup() {
+              kill "$DRIVER_PID" 2>/dev/null || true
+              wait "$DRIVER_PID" 2>/dev/null || true
+            }
+            trap cleanup EXIT
+            for attempt in {1..20}; do
+              if curl --silent --fail http://127.0.0.1:4444/status >/dev/null; then
+                break
+              fi
+              sleep 1
+            done
+            if ! curl --silent --fail http://127.0.0.1:4444/status >/dev/null; then
+              cat "$DRIVER_LOG"
+              exit 1
+            fi
+            set +e
+            flutter drive \
+              --driver=test_driver/integration_test.dart \
+              --target=integration_test/zstandard_web_integration_test.dart \
+              --driver-port=4444 \
+              --chrome-binary="$CHROME_EXECUTABLE" \
+              --web-browser-flag=--disable-dev-shm-usage \
+              --web-browser-flag=--disable-gpu \
+              -d web-server \
+              --web-port=8080
+            DRIVE_EXIT=$?
+            cat "$DRIVER_LOG"
+            exit "$DRIVE_EXIT"
+          '
 
   check_web_publish_dry_run:
     name: Dry Run Publish Web
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/preserve-flutter-project-files
         with:
-          channel: 'stable'
+          package: zstandard_web
+          mode: save
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_web
         run: flutter pub get
+
+      - uses: ./.github/actions/preserve-flutter-project-files
+        with:
+          package: zstandard_web
+          mode: restore
 
       - name: Publish Dry Run
         working-directory: zstandard_web

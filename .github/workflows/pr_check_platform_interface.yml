@@ -13,7 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
+  # Keep CI aligned with the package constraints. The organisation-level
+  # FLUTTER_VERSION variable may intentionally point to an older SDK.
+  FLUTTER_VERSION: '3.47.2'
 
 jobs:
   check_platform_interface_analyze:
@@ -21,16 +23,13 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
-          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -45,16 +44,17 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-linux-dependencies
         with:
-          channel: 'stable'
+          coverage: 'true'
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
@@ -64,22 +64,15 @@ jobs:
         working-directory: zstandard_platform_interface
         run: flutter test --coverage
 
-      - name: Install lcov
-        run: brew install lcov
-
       # Coverage threshold: lib/ only (same pattern as CLI)
       - name: Check coverage threshold (85% of lib/)
         working-directory: zstandard_platform_interface
         run: |
-          # Flutter emits line coverage; keep the existing line coverage threshold.
           lcov --rc function_coverage=0 --extract coverage/lcov.info 'lib/*' -o coverage/lcov_lib.info
           COVERAGE=$(lcov --rc function_coverage=0 --summary coverage/lcov_lib.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
           echo "Coverage (lib/ only): ${COVERAGE}%"
           if [ -z "$COVERAGE" ]; then echo "Could not parse coverage"; exit 1; fi
           if (( $(echo "$COVERAGE < 85" | bc -l) )); then echo "ERROR: Coverage ${COVERAGE}% is below 85%"; exit 1; fi
-
-      - name: Prepare coverage signature verification
-        uses: ./.github/actions/prepare-macos-coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -94,20 +87,27 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/preserve-flutter-project-files
         with:
-          channel: 'stable'
+          package: zstandard_platform_interface
+          mode: save
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_platform_interface
         run: flutter pub get
+
+      - uses: ./.github/actions/preserve-flutter-project-files
+        with:
+          package: zstandard_platform_interface
+          mode: restore
 
       - name: Publish Dry Run
         working-directory: zstandard_platform_interface

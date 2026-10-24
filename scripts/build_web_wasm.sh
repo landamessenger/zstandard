@@ -11,7 +11,7 @@
 #
 # See zstandard_web/README.md for usage of the generated files.
 
-set -e
+set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ZSTD_ROOT="$ROOT/zstandard_native/src/zstd"
 OUT_BLOB="$ROOT/zstandard_web/blob"
@@ -25,33 +25,81 @@ if [[ ! -d "$ZSTD_ROOT" || ! -f "$ZSTD_ROOT/zstd.h" ]]; then
   exit 1
 fi
 
-BUILD_DIR=$(mktemp -d)
-trap 'rm -rf "$BUILD_DIR"' EXIT
+EMSDK_REF="${EMSDK_REF:-a36df02dc438e8b02f91122a4c62eeecb6784272}"
+EMSCRIPTEN_VERSION="${EMSCRIPTEN_VERSION:-3.1.69}"
+EMSDK_DIR="${EMSDK_DIR:-}"
 
-echo "Cloning emsdk into $BUILD_DIR ..."
-git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$BUILD_DIR/emsdk"
+if [[ -z "$EMSDK_DIR" ]]; then
+  BUILD_DIR=$(mktemp -d)
+  trap 'rm -rf "$BUILD_DIR"' EXIT
 
-echo "Installing and activating Emscripten (latest) ..."
-cd "$BUILD_DIR/emsdk"
-./emsdk install latest
-./emsdk activate latest
+  echo "Cloning emsdk at $EMSDK_REF into $BUILD_DIR ..."
+  git init -q "$BUILD_DIR/emsdk"
+  git -C "$BUILD_DIR/emsdk" remote add origin https://github.com/emscripten-core/emsdk.git
+  # Some self-hosted networks reject anonymous GitHub fetches even for public
+  # repositories. Use the ephemeral Actions token when CI provides one, while
+  # keeping local development fully anonymous. Disable prompting so a runner
+  # cannot hang forever waiting for credentials, and retry transient failures.
+  fetch_emsdk() {
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+      # GitHub's checkout action configures its token as Basic auth; use the
+      # same format because some self-hosted network proxies reject Bearer.
+      EMSDK_AUTH=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\r\n')
+      GIT_TERMINAL_PROMPT=0 git -c http.version=HTTP/1.1 \
+        -c "http.extraHeader=Authorization: basic ${EMSDK_AUTH}" \
+        -C "$BUILD_DIR/emsdk" fetch --depth 1 origin "$EMSDK_REF"
+    else
+      GIT_TERMINAL_PROMPT=0 git -c http.version=HTTP/1.1 \
+        -C "$BUILD_DIR/emsdk" fetch --depth 1 origin "$EMSDK_REF"
+    fi
+  }
+  for attempt in 1 2 3; do
+    if fetch_emsdk; then
+      break
+    fi
+    if [[ "$attempt" -eq 3 ]]; then
+      echo "Error: unable to fetch emsdk commit $EMSDK_REF after $attempt attempts." >&2
+      exit 1
+    fi
+    echo "emsdk fetch failed; retrying ($((attempt + 1))/3) ..." >&2
+    sleep 5
+  done
+  git -C "$BUILD_DIR/emsdk" checkout --detach FETCH_HEAD
+  EMSDK_DIR="$BUILD_DIR/emsdk"
+
+  echo "Installing and activating Emscripten $EMSCRIPTEN_VERSION ..."
+  cd "$EMSDK_DIR"
+  ./emsdk install "$EMSCRIPTEN_VERSION"
+  ./emsdk activate "$EMSCRIPTEN_VERSION"
+else
+  if [[ ! -f "$EMSDK_DIR/emsdk_env.sh" ]]; then
+    echo "Error: EMSDK_DIR does not contain emsdk_env.sh: $EMSDK_DIR" >&2
+    exit 1
+  fi
+  echo "Using Emscripten SDK from $EMSDK_DIR ..."
+fi
+
+EMSDK_ROOT="$EMSDK_DIR"
+
 # shellcheck source=/dev/null
-source ./emsdk_env.sh
+source "$EMSDK_DIR/emsdk_env.sh"
+
+emcc --version
 
 echo "Building zstd with emcc from $ZSTD_ROOT ..."
 cd "$ZSTD_ROOT"
 
 # Same exports as documented in zstandard_web/README.md; only common/compress/decompress (no legacy/dictBuilder).
-COMMON_SRC=$(find common -name "*.c" 2>/dev/null | tr '\n' ' ')
-COMPRESS_SRC=$(find compress -name "*.c" 2>/dev/null | tr '\n' ' ')
-DECOMPRESS_SRC=$(find decompress -name "*.c" 2>/dev/null | tr '\n' ' ')
+COMMON_SRC=$(find common -name "*.c" 2>/dev/null | sort | tr '\n' ' ')
+COMPRESS_SRC=$(find compress -name "*.c" 2>/dev/null | sort | tr '\n' ' ')
+DECOMPRESS_SRC=$(find decompress -name "*.c" 2>/dev/null | sort | tr '\n' ' ')
 
 emcc -O3 \
   $COMMON_SRC $COMPRESS_SRC $DECOMPRESS_SRC \
   -I. -Icommon -Icompress -Idecompress \
   -s WASM=1 \
   -s EXPORT_NAME="zstdWasmModule" \
-  -s EXPORTED_FUNCTIONS="['_ZSTD_compress','_ZSTD_decompress','_malloc','_free','_ZSTD_getFrameContentSize','_ZSTD_compressBound']" \
+  -s EXPORTED_FUNCTIONS="['_ZSTD_compress','_ZSTD_decompress','_ZSTD_isError','_malloc','_free','_ZSTD_getFrameContentSize','_ZSTD_compressBound']" \
   -s EXPORTED_RUNTIME_METHODS="['HEAPU8']" \
   -s INITIAL_MEMORY=134217728 \
   -s ALLOW_MEMORY_GROWTH=1 \
@@ -62,6 +110,23 @@ if [[ ! -f zstd_generated.js || ! -f zstd_generated.wasm ]]; then
   echo "Error: emcc did not produce zstd_generated.js / zstd_generated.wasm"
   exit 1
 fi
+
+# wasm-ld can emit host-dependent metadata even when the Emscripten version is
+# pinned. Strip that metadata with the wasm-opt shipped by the same SDK so the
+# committed binary is reproducible on Linux x64 and macOS arm64 alike.
+WASM_OPT="$EMSDK_ROOT/upstream/bin/wasm-opt"
+if [[ ! -x "$WASM_OPT" ]]; then
+  echo "Error: wasm-opt not found in the selected Emscripten SDK: $WASM_OPT" >&2
+  exit 1
+fi
+"$WASM_OPT" \
+  --strip-debug \
+  --strip-producers \
+  --strip-target-features \
+  --remove-unused-names \
+  zstd_generated.wasm \
+  -o zstd_normalized.wasm
+mv zstd_normalized.wasm zstd_generated.wasm
 
 # Append the compressData/decompressData wrappers required by the web plugin (see zstandard_web/README.md).
 cat >> zstd_generated.js << 'WRAPPER_JS'
@@ -98,7 +163,7 @@ async function compressData(inputData, compressionLevel) {
         compressionLevel
     ));
 
-    if (compressedSize < 0) {
+    if (Module._ZSTD_isError(compressedSize) !== 0 || compressedSize <= 0) {
         console.error('Compression error, error code: ', compressedSize);
         Module._free(inputPtr);
         Module._free(outputPtr);
@@ -118,23 +183,30 @@ async function decompressData(compressedData) {
     let compressedPtr = Module._malloc(compressedData.length);
     Module.HEAPU8.set(compressedData, compressedPtr);
 
+    // ZSTD_getFrameContentSize returns these unsigned 64-bit sentinel values.
+    // JavaScript rounds them to the same Number values returned by Emscripten.
+    const ZSTD_CONTENTSIZE_UNKNOWN = 0xffffffffffffffff;
+    const ZSTD_CONTENTSIZE_ERROR = 0xfffffffffffffffe;
     let decompressedSize = Number(Module._ZSTD_getFrameContentSize(compressedPtr, compressedData.length));
-    if (decompressedSize === -1 || decompressedSize === -2) {
+    if (decompressedSize === ZSTD_CONTENTSIZE_ERROR) {
         console.error('Error in obtaining the original size of the data');
         Module._free(compressedPtr);
         return null;
     }
 
-    let decompressedPtr = Module._malloc(decompressedSize);
+    const outputBufferSize = decompressedSize === ZSTD_CONTENTSIZE_UNKNOWN
+        ? compressedData.length * 20
+        : decompressedSize;
+    let decompressedPtr = Module._malloc(outputBufferSize);
 
     let resultSize = Number(Module._ZSTD_decompress(
         decompressedPtr,
-        decompressedSize,
+        outputBufferSize,
         compressedPtr,
         compressedData.length
     ));
 
-    if (resultSize < 0) {
+    if (Module._ZSTD_isError(resultSize) !== 0 || resultSize < 0) {
         console.error('Decompression error, error code: ', resultSize);
         Module._free(compressedPtr);
         Module._free(decompressedPtr);

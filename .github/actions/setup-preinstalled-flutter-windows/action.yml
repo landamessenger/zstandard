@@ -1,0 +1,104 @@
+name: Set up Flutter on Windows
+description: Download, cache, and validate the pinned Flutter SDK on Windows.
+
+inputs:
+  flutter-version:
+    description: Required Flutter stable version.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install and verify Flutter and Windows toolchain
+      # Some self-hosted machines do not have Bash and enforce a restrictive
+      # PowerShell execution policy. Use native Windows commands so CI does not
+      # depend on either shell or change a machine-wide policy.
+      # The self-hosted runner tool cache is persistent between jobs, so this
+      # avoids a second archive cache layer and its dependency on Git's tar/gzip.
+      shell: cmd
+      env:
+        REQUIRED_FLUTTER_VERSION: ${{ inputs.flutter-version }}
+      run: |
+        @echo off
+        setlocal EnableExtensions EnableDelayedExpansion
+        if not defined RUNNER_TOOL_CACHE (
+          echo RUNNER_TOOL_CACHE is not available on this self-hosted runner.
+          exit /b 1
+        )
+        set "FLUTTER_ROOT=%RUNNER_TOOL_CACHE%\flutter\%REQUIRED_FLUTTER_VERSION%\x64"
+        if not exist "%FLUTTER_ROOT%\bin\flutter.bat" (
+          where curl.exe >nul 2>&1 || (echo curl.exe is not available on PATH. & exit /b 1)
+          where tar.exe >nul 2>&1 || (echo tar.exe is not available on PATH. & exit /b 1)
+          set "FLUTTER_ARCHIVE=%RUNNER_TEMP%\flutter_windows_%REQUIRED_FLUTTER_VERSION%.zip"
+          if exist "!FLUTTER_ARCHIVE!" del /f /q "!FLUTTER_ARCHIVE!"
+          if exist "%RUNNER_TEMP%\flutter" rmdir /s /q "%RUNNER_TEMP%\flutter"
+          echo Downloading Flutter %REQUIRED_FLUTTER_VERSION% from the official archive...
+          curl.exe -fL --retry 3 --connect-timeout 15 --max-time 1800 -o "!FLUTTER_ARCHIVE!" "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_%REQUIRED_FLUTTER_VERSION%-stable.zip"
+          if errorlevel 1 exit /b 1
+          tar.exe -xf "!FLUTTER_ARCHIVE!" -C "%RUNNER_TEMP%"
+          if errorlevel 1 exit /b 1
+          if not exist "%RUNNER_TEMP%\flutter\bin\flutter.bat" (
+            echo The Flutter archive did not contain the expected SDK layout.
+            exit /b 1
+          )
+          if exist "%FLUTTER_ROOT%" rmdir /s /q "%FLUTTER_ROOT%"
+          if not exist "%RUNNER_TOOL_CACHE%\flutter\%REQUIRED_FLUTTER_VERSION%" mkdir "%RUNNER_TOOL_CACHE%\flutter\%REQUIRED_FLUTTER_VERSION%"
+          move "%RUNNER_TEMP%\flutter" "%FLUTTER_ROOT%" >nul
+          if errorlevel 1 exit /b 1
+        )
+        set "PATH=%FLUTTER_ROOT%\bin;%FLUTTER_ROOT%\bin\cache\dart-sdk\bin;%PATH%"
+        where git >nul 2>&1 || (echo Git for Windows is not available on PATH. & exit /b 1)
+        set "GIT_CONFIG_COUNT=1"
+        set "GIT_CONFIG_KEY_0=safe.directory"
+        set "GIT_CONFIG_VALUE_0=%FLUTTER_ROOT%"
+        for /f "tokens=2" %%V in ('call "%FLUTTER_ROOT%\bin\flutter.bat" --version ^| findstr /b "Flutter "') do set "ACTUAL_VERSION=%%V"
+        if not defined ACTUAL_VERSION (echo Unable to determine the installed Flutter version. & exit /b 1)
+        if not "%ACTUAL_VERSION%" == "%REQUIRED_FLUTTER_VERSION%" (
+          echo Expected Flutter %REQUIRED_FLUTTER_VERSION%, got %ACTUAL_VERSION% at %FLUTTER_ROOT%.
+          exit /b 1
+        )
+        call "%FLUTTER_ROOT%\bin\flutter.bat" config --enable-windows-desktop
+        set "SYMLINK_CHECK_DIR=%RUNNER_TEMP%\flutter-symlink-check"
+        if exist "%SYMLINK_CHECK_DIR%" rmdir /s /q "%SYMLINK_CHECK_DIR%"
+        mkdir "%SYMLINK_CHECK_DIR%"
+        > "%SYMLINK_CHECK_DIR%\target.txt" echo symlink-check
+        mklink "%SYMLINK_CHECK_DIR%\link.txt" "%SYMLINK_CHECK_DIR%\target.txt" >nul 2>&1
+        if errorlevel 1 (
+          rmdir /s /q "%SYMLINK_CHECK_DIR%"
+          echo Windows symlink support is required. Enable Developer Mode or grant the runner service account SeCreateSymbolicLinkPrivilege.
+          exit /b 1
+        )
+        del /f /q "%SYMLINK_CHECK_DIR%\link.txt" "%SYMLINK_CHECK_DIR%\target.txt"
+        rmdir /s /q "%SYMLINK_CHECK_DIR%"
+        set "CMAKE_DIR="
+        for %%D in (
+          "%ProgramFiles%\CMake\bin"
+          "%ProgramFiles%\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles%\Microsoft Visual Studio\2022\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles%\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles%\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles%\Microsoft Visual Studio\2019\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles%\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles(x86)%\CMake\bin"
+          "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+          "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+        ) do if not defined CMAKE_DIR if exist "%%~D\cmake.exe" set "CMAKE_DIR=%%~D"
+        set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+        if not defined CMAKE_DIR if exist "%VSWHERE%" (
+          for /f "delims=" %%I in ('"%VSWHERE%" -latest -products * -property installationPath') do if not defined CMAKE_DIR if exist "%%I\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" set "CMAKE_DIR=%%I\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+        )
+        if not defined CMAKE_DIR (
+          echo CMake is not available. Install the Visual Studio C++ desktop workload with CMake support.
+          exit /b 1
+        )
+        set "PATH=%CMAKE_DIR%;%PATH%"
+        where cmake >nul 2>&1 || (echo CMake could not be added to PATH. & exit /b 1)
+        where ctest >nul 2>&1 || (echo CTest is not available on PATH. & exit /b 1)
+        call "%FLUTTER_ROOT%\bin\flutter.bat" --version
+        cmake --version
+        >> "%GITHUB_ENV%" echo FLUTTER_ROOT=%FLUTTER_ROOT%
+        >> "%GITHUB_PATH%" echo %FLUTTER_ROOT%\bin
+        >> "%GITHUB_PATH%" echo %FLUTTER_ROOT%\bin\cache\dart-sdk\bin
+        >> "%GITHUB_PATH%" echo %CMAKE_DIR%

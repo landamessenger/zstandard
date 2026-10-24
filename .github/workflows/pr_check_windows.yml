@@ -13,7 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
+  # Keep Windows aligned with the Flutter SDK used by the other platform jobs.
+  FLUTTER_VERSION: '3.47.2'
+
 
 jobs:
   check_windows_analyze:
@@ -22,23 +24,23 @@ jobs:
     runs-on:
       group: vypdev
       labels: [self-hosted, Windows, X64]
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - name: Prepare Flutter SDK
-        uses: ./.github/actions/setup-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies
         working-directory: zstandard_windows
         shell: cmd
-        run: flutter pub get
+        run: call flutter pub get
 
       - name: Analyze check
         working-directory: zstandard_windows
         shell: cmd
-        run: flutter analyze
+        run: call flutter analyze
 
   check_windows_test:
     name: Test Windows
@@ -46,33 +48,73 @@ jobs:
     runs-on:
       group: vypdev
       labels: [self-hosted, Windows, X64]
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - name: Prepare Flutter SDK
-        uses: ./.github/actions/setup-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies
         working-directory: zstandard_windows
         shell: cmd
-        run: flutter pub get
+        run: call flutter pub get
 
       - name: Clean example
         working-directory: zstandard_windows/example
         shell: cmd
-        run: flutter clean
+        run: call flutter clean
 
       - name: Get example dependencies
         working-directory: zstandard_windows/example
         shell: cmd
-        run: flutter pub get
+        run: call flutter pub get
 
-      - name: Run integration tests
+      - name: Build Windows example
         working-directory: zstandard_windows/example
         shell: cmd
-        run: flutter test integration_test/ -d windows
+        run: call flutter build windows --debug
+
+      - name: Run Windows native C++ tests
+        working-directory: zstandard_windows/example
+        shell: cmd
+        run: |
+          @echo off
+          set "BUILD_DIR=build\windows\x64"
+          if not exist "%BUILD_DIR%\CMakeCache.txt" (
+            echo Flutter did not generate a Windows CMake build directory.
+            exit /b 1
+          )
+          cmake --build "%BUILD_DIR%" --config Debug --target zstandard_windows_test --parallel
+          set "TEST_EXE=%BUILD_DIR%\plugins\zstandard_windows\Debug\zstandard_windows_test.exe"
+          if not exist "%TEST_EXE%" (
+            echo The Windows native test executable was not produced by the build.
+            exit /b 1
+          )
+          "%TEST_EXE%"
+          if errorlevel 1 exit /b 1
+
+      - name: Run Windows package tests against the built DLL
+        shell: cmd
+        run: |
+          @echo off
+          set "DLL_DIR=%CD%\zstandard_windows\example\build\windows\x64\runner\Debug"
+          if not exist "%DLL_DIR%\zstandard_windows.dll" (
+            echo The Windows zstandard DLL was not produced by the build.
+            exit /b 1
+          )
+          set "PATH=%DLL_DIR%;%PATH%"
+          pushd zstandard_windows
+          call flutter test test --coverage
+          set "EXIT_CODE=%ERRORLEVEL%"
+          popd
+          exit /b %EXIT_CODE%
+
+      - name: Launch Windows example and run integration tests
+        working-directory: zstandard_windows/example
+        shell: cmd
+        run: call flutter test integration_test/windows_integration_test.dart -d windows
 
   check_windows_test_from_pub_cache:
     name: Test Windows (from pub cache)
@@ -80,32 +122,109 @@ jobs:
     runs-on:
       group: vypdev
       labels: [self-hosted, Windows, X64]
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - name: Prepare Flutter SDK
-        uses: ./.github/actions/setup-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Remove zstandard_native to force resolution from pub cache
         shell: cmd
-        run: rmdir /s /q zstandard_native
+        run: |
+          @echo off
+          if exist zstandard_native rmdir /s /q zstandard_native
 
       - name: Clean and get dependencies (force pub cache)
         working-directory: zstandard_windows
         shell: cmd
-        run: flutter clean && flutter pub get
+        run: |
+          call flutter clean
+          call flutter pub get
 
       - name: Get dependencies in example (force pub cache)
         working-directory: zstandard_windows/example
         shell: cmd
-        run: flutter clean && flutter pub get
+        run: |
+          call flutter clean
+          call flutter pub get
 
-      - name: Run integration tests (C sources from pub cache)
+      - name: Build Windows example from pub cache
         working-directory: zstandard_windows/example
         shell: cmd
-        run: flutter test integration_test/ -d windows
+        run: call flutter build windows --debug
+
+      - name: Run Windows native C++ tests from pub cache
+        working-directory: zstandard_windows/example
+        shell: cmd
+        run: |
+          @echo off
+          set "BUILD_DIR=build\windows\x64"
+          if not exist "%BUILD_DIR%\CMakeCache.txt" (
+            echo Flutter did not generate a Windows CMake build directory.
+            exit /b 1
+          )
+          cmake --build "%BUILD_DIR%" --config Debug --target zstandard_windows_test --parallel
+          set "TEST_EXE=%BUILD_DIR%\plugins\zstandard_windows\Debug\zstandard_windows_test.exe"
+          if not exist "%TEST_EXE%" (
+            echo The Windows native test executable was not produced by the build.
+            exit /b 1
+          )
+          "%TEST_EXE%"
+          if errorlevel 1 exit /b 1
+
+      - name: Run Windows package tests against the pub-cache DLL
+        shell: cmd
+        run: |
+          @echo off
+          set "DLL_DIR=%CD%\zstandard_windows\example\build\windows\x64\runner\Debug"
+          if not exist "%DLL_DIR%\zstandard_windows.dll" (
+            echo The Windows zstandard DLL was not produced by the build.
+            exit /b 1
+          )
+          set "PATH=%DLL_DIR%;%PATH%"
+          pushd zstandard_windows
+          call flutter test test --coverage
+          set "EXIT_CODE=%ERRORLEVEL%"
+          popd
+          exit /b %EXIT_CODE%
+
+      - name: Launch Windows example and run integration tests from pub cache
+        working-directory: zstandard_windows/example
+        shell: cmd
+        run: call flutter test integration_test/windows_integration_test.dart -d windows
+
+  check_windows_federated_example:
+    name: Test federated Windows example
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-flutter-windows
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Clean and get federated example dependencies
+        working-directory: zstandard/example
+        shell: cmd
+        run: |
+          call flutter clean
+          call flutter pub get
+
+      - name: Build federated Windows example
+        working-directory: zstandard/example
+        shell: cmd
+        run: call flutter build windows --debug
+
+      - name: Launch federated Windows example and run integration tests
+        working-directory: zstandard/example
+        shell: cmd
+        run: call flutter test integration_test/ -d windows
 
   check_windows_publish_dry_run:
     name: Dry Run Publish Windows
@@ -113,20 +232,20 @@ jobs:
     runs-on:
       group: vypdev
       labels: [self-hosted, Windows, X64]
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - name: Prepare Flutter SDK
-        uses: ./.github/actions/setup-flutter-windows
+      - uses: ./.github/actions/setup-flutter-windows
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies
         working-directory: zstandard_windows
         shell: cmd
-        run: flutter pub get
+        run: call flutter pub get
 
       - name: Publish Dry Run
         working-directory: zstandard_windows
         shell: cmd
-        run: dart pub publish --dry-run
+        run: call dart pub publish --dry-run

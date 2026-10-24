@@ -23,7 +23,12 @@ No additional Gradle or native setup is required for normal use. The plugin regi
 
 ## Android build requirements
 
-The plugin uses Built-in Kotlin with Android Gradle Plugin 9 or newer and requires Flutter 3.44 or newer (Dart 3.12 or newer). Its example projects validate the AGP 9 path with Flutter 3.47 or newer.
+The plugin does not apply or configure the Kotlin Gradle Plugin itself. Kotlin
+compiler settings are owned by the consuming Flutter application, which keeps
+the plugin compatible with both AGP 9 built-in Kotlin and older AGP projects.
+The plugin requires Flutter 3.44 or newer (Dart 3.12 or newer). Its example
+projects validate the AGP 9 path with Flutter 3.47 or newer and retain a legacy
+AGP 8.11.1 compatibility example.
 
 ## Architecture
 
@@ -63,7 +68,7 @@ See the package’s `android/` and `src/` directories and the main repo’s [Bui
 ## Testing
 
 - **Unit tests**: Run from the package directory: `flutter test`
-- **Integration tests**: Use the example app: run the app on an Android device or emulator and execute `integration_test` (e.g. `flutter test integration_test/` from the example).
+- **Integration tests**: Use the example app: run the app on an Android device or emulator and execute the integration files explicitly (e.g. `flutter test integration_test/android_compression_integration_test.dart` from the example).
 
 ## Performance characteristics
 

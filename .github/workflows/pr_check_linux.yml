@@ -13,7 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
+  # Keep CI aligned with the package constraints. The organisation-level
+  # FLUTTER_VERSION variable may intentionally point to an older SDK.
+  FLUTTER_VERSION: '3.47.2'
 
 jobs:
   check_linux_analyze:
@@ -23,14 +25,11 @@ jobs:
       group: vypdev
       labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
-          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -41,23 +40,22 @@ jobs:
         run: flutter analyze
 
   check_linux_test:
-    env:
-      GDK_BACKEND: x11
-      LIBGL_ALWAYS_SOFTWARE: '1'
     name: Test Linux
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
       labels: [self-hosted, codex, Linux]
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-linux-dependencies
         with:
-          channel: 'stable'
+          desktop: 'true'
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_linux
@@ -71,31 +69,43 @@ jobs:
         working-directory: zstandard_linux/example
         run: flutter pub get
 
-      - name: Prepare virtual display
-        uses: ./.github/actions/prepare-linux-display
-
-      - name: Run integration tests with a virtual display
+      - name: Build Linux example
         working-directory: zstandard_linux/example
-        run: xvfb-run -a flutter test integration_test/ -d linux
+        run: flutter build linux --debug
+
+      - name: Build and run Linux native tests
+        working-directory: zstandard_linux/example
+        run: |
+          set -euo pipefail
+          cmake_build_dir=$(find build/linux -type f -name CMakeCache.txt \
+            -not -path '*/_deps/*' -print \
+            | sed 's#/CMakeCache.txt$##' | sort | tail -n 1)
+          test -n "$cmake_build_dir"
+          ZSTANDARD_LINUX_ENABLE_TESTS=1 cmake -S linux -B "$cmake_build_dir"
+          cmake --build "$cmake_build_dir" --target zstandard_linux_test --parallel
+          ctest --test-dir "$cmake_build_dir" --output-on-failure
+
+      - name: Run integration tests
+        working-directory: zstandard_linux/example
+        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' flutter test integration_test/ -d linux
 
   check_linux_test_from_pub_cache:
-    env:
-      GDK_BACKEND: x11
-      LIBGL_ALWAYS_SOFTWARE: '1'
     name: Test Linux (from pub cache)
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
       labels: [self-hosted, codex, Linux]
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-linux-dependencies
         with:
-          channel: 'stable'
+          desktop: 'true'
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Remove zstandard_native to force resolution from pub cache
         run: rm -rf zstandard_native
@@ -112,12 +122,25 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Prepare virtual display
-        uses: ./.github/actions/prepare-linux-display
-
-      - name: Run integration tests with a virtual display (C sources from pub cache)
+      - name: Build Linux example from pub cache
         working-directory: zstandard_linux/example
-        run: xvfb-run -a flutter test integration_test/ -d linux
+        run: flutter build linux --debug
+
+      - name: Build and run Linux native tests from pub cache
+        working-directory: zstandard_linux/example
+        run: |
+          set -euo pipefail
+          cmake_build_dir=$(find build/linux -type f -name CMakeCache.txt \
+            -not -path '*/_deps/*' -print \
+            | sed 's#/CMakeCache.txt$##' | sort | tail -n 1)
+          test -n "$cmake_build_dir"
+          ZSTANDARD_LINUX_ENABLE_TESTS=1 cmake -S linux -B "$cmake_build_dir"
+          cmake --build "$cmake_build_dir" --target zstandard_linux_test --parallel
+          ctest --test-dir "$cmake_build_dir" --output-on-failure
+
+      - name: Run integration tests (C sources from pub cache)
+        working-directory: zstandard_linux/example
+        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' flutter test integration_test/ -d linux
 
   check_linux_publish_dry_run:
     name: Dry Run Publish Linux
@@ -126,18 +149,25 @@ jobs:
       group: vypdev
       labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/preserve-flutter-project-files
         with:
-          channel: 'stable'
+          package: zstandard_linux
+          mode: save
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_linux
         run: flutter pub get
+
+      - uses: ./.github/actions/preserve-flutter-project-files
+        with:
+          package: zstandard_linux
+          mode: restore
 
       - name: Publish Dry Run
         working-directory: zstandard_linux

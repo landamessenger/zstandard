@@ -13,7 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
+  # Keep CI aligned with the repository toolchain. The organisation-level
+  # FLUTTER_VERSION variable may intentionally point to an older SDK.
+  FLUTTER_VERSION: '3.47.2'
 
 jobs:
   check_cli_analyze:
@@ -21,16 +23,13 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
-          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_cli
@@ -45,17 +44,18 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-linux-dependencies
         with:
-          channel: 'stable'
+          coverage: 'true'
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_cli
@@ -69,23 +69,16 @@ jobs:
         working-directory: zstandard_cli
         run: dart run coverage:format_coverage --lcov -i coverage -o coverage/lcov.info --packages=.dart_tool/package_config.json
 
-      - name: Install lcov
-        run: brew install lcov
-
       # Coverage threshold: lib/ only, excluding generated bindings
       - name: Check coverage threshold (79% of lib/)
         working-directory: zstandard_cli
         run: |
-          # Dart emits line coverage; keep the existing line coverage threshold.
           lcov --rc function_coverage=0 --extract coverage/lcov.info '*zstandard_cli/lib/*' -o coverage/lcov_lib.info
-          lcov --rc function_coverage=0 --remove coverage/lcov_lib.info '*bindings_generated*' -o coverage/lcov_lib.info --ignore-errors unused
+          lcov --remove coverage/lcov_lib.info '*bindings_generated*' -o coverage/lcov_lib.info --ignore-errors unused
           COVERAGE=$(lcov --rc function_coverage=0 --summary coverage/lcov_lib.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
           echo "Coverage (lib/ excluding generated): ${COVERAGE}%"
           if [ -z "$COVERAGE" ]; then echo "Could not parse coverage"; exit 1; fi
           if (( $(echo "$COVERAGE < 79" | bc -l) )); then echo "ERROR: Coverage ${COVERAGE}% is below 79%"; exit 1; fi
-
-      - name: Prepare coverage signature verification
-        uses: ./.github/actions/prepare-macos-coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -95,18 +88,20 @@ jobs:
           flags: cli
           fail_ci_if_error: true
 
-      - name: Run benchmarks
+      - name: Run benchmarks (informational)
         working-directory: zstandard_cli
         run: dart run benchmark/benchmark_suite.dart --output=benchmark_results.json || true
 
-      - name: Check performance regression (if baseline exists)
+      - name: Check Linux performance regression (if baseline exists)
         working-directory: zstandard_cli
         run: |
-          if [ -f benchmark/baselines/baseline_macos_arm64.json ]; then
+          if [ -f benchmark/baselines/baseline_linux_x64.json ]; then
             dart run ../../scripts/check_performance_regression.dart \
-              --baseline=benchmark/baselines/baseline_macos_arm64.json \
+              --baseline=benchmark/baselines/baseline_linux_x64.json \
               --current=benchmark_results.json \
               --threshold=0.10 || true
+          else
+            echo "No Linux baseline found; skipping performance regression check."
           fi
 
   check_cli_publish_dry_run:
@@ -114,16 +109,13 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
-          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_cli

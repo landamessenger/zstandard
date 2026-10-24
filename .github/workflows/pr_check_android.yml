@@ -13,7 +13,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
+  # Keep CI aligned with the package constraints. The organisation-level
+  # FLUTTER_VERSION variable may intentionally point to an older SDK.
+  FLUTTER_VERSION: '3.47.2'
+  # AOSP ATD images are designed for automated tests and avoid the background
+  # Google services that starve this software-only self-hosted emulator.
+  ANDROID_API_LEVEL: '30'
+  ANDROID_SYSTEM_IMAGE_TARGET: 'aosp_atd'
+  ANDROID_SYSTEM_IMAGE_ARCH: 'x86_64'
 
 jobs:
   check_android_analyze:
@@ -21,16 +28,13 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
-          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -38,132 +42,186 @@ jobs:
 
       - name: Analyze check
         working-directory: zstandard_android
-        run: flutter analyze
+        run: flutter analyze lib test
 
-  check_android_test:
-    name: Test Android
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on:
-      group: vypdev
-      labels: [self-hosted, macOS, ARM64]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
-
-      - name: Get dependencies
+      - name: Get modern example dependencies
         working-directory: zstandard_android/example
         run: flutter pub get
 
-      - name: Set up JDK 17 (required by android-emulator-runner / sdkmanager)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - name: Analyze modern example
+        working-directory: zstandard_android/example
+        run: flutter analyze
 
-      - name: Prepare isolated Android build tools
-        uses: ./.github/actions/prepare-android-integration
+      - name: Get legacy example dependencies
+        working-directory: zstandard_android/example_legacy
+        run: flutter pub get
 
-      - name: Prepare Android command-line tools
-        uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
+      - name: Analyze legacy example
+        working-directory: zstandard_android/example_legacy
+        run: flutter analyze
 
-      - name: Run integration tests on emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          target: google_apis
-          profile: pixel_4
-          arch: arm64-v8a
-          ndk: 28.2.13676358
-          avd-name: zstandard_ci_test
-          emulator-port: 5554
-          script: |
-            cd zstandard_android/example && env HOME="$ZSTANDARD_FLUTTER_PROFILE" XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_PROFILE/config" flutter test integration_test/ -d emulator-${EMULATOR_PORT}
+      - name: Run package tests
+        working-directory: zstandard_android
+        run: flutter test
 
-  check_android_test_from_pub_cache:
-    name: Test Android (from pub cache)
+  check_android_test:
+    name: Test Android (${{ matrix.example }}, ${{ matrix.source }})
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      # The self-hosted runner shares one ADB daemon and one emulator port.
+      max-parallel: 1
+      matrix:
+        example: [example, example_legacy]
+        source: [workspace, pub-cache]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-linux-dependencies
         with:
-          channel: 'stable'
+          android: 'true'
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Remove zstandard_native to force resolution from pub cache
-        run: rm -rf zstandard_native
+        if: matrix.source == 'pub-cache'
+        run: mv zstandard_native "$RUNNER_TEMP/zstandard_native"
 
-      - name: Clean and get dependencies (force pub cache)
+      - name: Get dependencies
+        working-directory: zstandard_android/${{ matrix.example }}
+        run: flutter pub get
+
+      - name: Clean and get plugin dependencies
         working-directory: zstandard_android
         run: |
           flutter clean
+          # The plugin CMake cache is kept outside Flutter's build directory
+          # on persistent self-hosted runners. Remove it so workspace and
+          # pub-cache matrix entries cannot reuse a previous native source.
+          rm -rf android/.cxx
           flutter pub get
 
-      - name: Get dependencies in example (force pub cache)
-        working-directory: zstandard_android/example
+      - name: Clean and get example dependencies
+        working-directory: zstandard_android/${{ matrix.example }}
         run: |
           flutter clean
           flutter pub get
 
-      - name: Set up JDK 17 (required by android-emulator-runner / sdkmanager)
-        uses: actions/setup-java@v4
+      - name: Set up JDK 17 (required by Android SDK tools and Gradle)
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Prepare isolated Android build tools
-        uses: ./.github/actions/prepare-android-integration
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@v4
 
-      - name: Prepare Android command-line tools
-        uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
+      - name: Verify Android SDK prerequisites
+        run: bash scripts/check_android_ci_prerequisites.sh
 
-      - name: Run integration tests on emulator (from pub cache)
-        uses: reactivecircus/android-emulator-runner@v2
+      - name: Verify Android Gradle consumer configuration
+        working-directory: zstandard_android/${{ matrix.example }}
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.example }}" == 'example' ]]; then
+            grep -F 'id "com.android.application" version "9.1.0" apply false' android/settings.gradle
+            grep -F 'gradle-9.3.1-all.zip' android/gradle/wrapper/gradle-wrapper.properties
+          else
+            grep -F 'id "com.android.application" version "8.11.1" apply false' android/settings.gradle
+            grep -F 'gradle-8.14-all.zip' android/gradle/wrapper/gradle-wrapper.properties
+          fi
+
+      - name: Build Android debug APKs for all supported Flutter ABIs
+        working-directory: zstandard_android/${{ matrix.example }}
+        run: flutter build apk --debug --split-per-abi --target-platform android-arm,android-arm64,android-x64
+
+      - name: Verify selected Gradle runtime
+        working-directory: zstandard_android/${{ matrix.example }}/android
+        run: bash ./gradlew --no-daemon --version
+
+      - name: Verify debug APK native libraries
+        working-directory: zstandard_android/${{ matrix.example }}
+        run: bash ../../scripts/check_android_apk_abis.sh build/app/outputs/flutter-apk debug
+
+      - name: Build Android release APKs for all supported Flutter ABIs
+        if: matrix.source == 'workspace'
+        working-directory: zstandard_android/${{ matrix.example }}
+        run: flutter build apk --release --split-per-abi --target-platform android-arm,android-arm64,android-x64
+
+      - name: Verify release APK native libraries
+        if: matrix.source == 'workspace'
+        working-directory: zstandard_android/${{ matrix.example }}
+        run: bash ../../scripts/check_android_apk_abis.sh build/app/outputs/flutter-apk release
+
+      - name: Run Flutter and native Android tests on emulator
+        run: |
+          # Boot the software emulator once per matrix entry. Rebooting it
+          # between suites makes Flutter's test-app handshake flaky on the
+          # shared Linux runner. Each individual command remains bounded.
+          bash scripts/run_android_emulator_ci.sh \
+            bash -c '
+              set -euo pipefail
+              cd zstandard_android/${{ matrix.example }}
+              timeout --foreground 10m \
+                flutter test integration_test/android_compression_integration_test.dart \
+                -d emulator-${EMULATOR_PORT} --reporter expanded
+              timeout --foreground 10m \
+                flutter test integration_test/android_properties_integration_test.dart \
+                -d emulator-${EMULATOR_PORT} --reporter expanded
+              cd android
+              timeout --foreground 15m \
+                bash ./gradlew --no-daemon connectedDebugAndroidTest --stacktrace
+            '
+
+      - name: Upload Android emulator diagnostics
+        if: always()
+        uses: actions/upload-artifact@v5
         with:
-          api-level: 30
-          target: google_apis
-          profile: pixel_4
-          arch: arm64-v8a
-          ndk: 28.2.13676358
-          avd-name: zstandard_ci_test_pubcache
-          emulator-port: 5556
-          script: |
-            cd zstandard_android/example && env HOME="$ZSTANDARD_FLUTTER_PROFILE" XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_PROFILE/config" flutter test integration_test/ -d emulator-${EMULATOR_PORT}
+          name: android-emulator-logs-${{ matrix.example }}-${{ matrix.source }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/zstandard_ci_test-*.log
+            ${{ runner.temp }}/zstandard_ci_test-*.txt
+          if-no-files-found: ignore
+
+      - name: Restore workspace native package
+        if: always() && matrix.source == 'pub-cache'
+        run: |
+          if [[ -d "$RUNNER_TEMP/zstandard_native" ]]; then
+            mv "$RUNNER_TEMP/zstandard_native" zstandard_native
+          fi
 
   check_android_publish_dry_run:
     name: Dry Run Publish Android
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
-      labels: [self-hosted, macOS, ARM64]
+      labels: [self-hosted, codex, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/preserve-flutter-project-files
         with:
-          channel: 'stable'
+          package: zstandard_android
+          mode: save
+
+      - uses: ./.github/actions/setup-flutter
+        with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
-          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_android
         run: flutter pub get
+
+      - uses: ./.github/actions/preserve-flutter-project-files
+        with:
+          package: zstandard_android
+          mode: restore
 
       - name: Publish Dry Run
         working-directory: zstandard_android

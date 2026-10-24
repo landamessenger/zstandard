@@ -3,18 +3,6 @@
 group = "dev.vyp.zstandard_android"
 version = "1.0"
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        // The Android Gradle Plugin knows how to build native code with the NDK.
-        classpath("com.android.tools.build:gradle:9.1.0")
-    }
-}
-
 rootProject.allprojects {
     repositories {
         google()
@@ -70,6 +58,15 @@ android {
                 arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
             }
         }
+    }
+}
+
+// Keep the Kotlin bytecode target aligned with this plugin's Java bytecode
+// target. This is required by recent Kotlin Gradle Plugin versions when the
+// plugin is consumed by an application that still supports AGP 8.x.
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
     }
 }
 

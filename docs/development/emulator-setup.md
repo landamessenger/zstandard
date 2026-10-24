@@ -1,18 +1,19 @@
 # Emulator and Simulator Setup
 
-This document describes how to set up Android emulators and iOS simulators for running integration tests locally and in CI. It applies to macOS hosts.
+This document describes how to set up Android emulators, iOS simulators, Linux desktop dependencies, and Chrome for running integration tests locally and in CI.
 
 ## Android Emulator
 
 ### CI (GitHub Actions)
 
-The push and release workflows use [ReactiveCircus/android-emulator-runner](https://github.com/ReactiveCircus/android-emulator-runner) to start an emulator (API 30, `google_apis`, `pixel_4`) and run the Android integration tests. No local script is used in CI.
+The push and release workflows use `scripts/run_android_emulator_ci.sh` on the `[self-hosted, Linux]` runner to install the required SDK components, create an API 31 `google_atd` `pixel_4` AVD, and run the Android integration tests. The Android Test Device image avoids Google Play services that are not needed by this package's tests and is suitable for headless execution. The generated AVD disables GPS because the tests do not use location, and the launcher disables the emulator's `GnssGrpcV1` feature so it does not start an unnecessary host GNSS socket. Vulkan is disabled explicitly because this software-only runner has experienced emulator crashes while initializing the Vulkan/SwiftShader backend; `swiftshader_indirect` remains enabled for GLES rendering. The workflow builds the APK first and explicitly uses software emulation because the current self-hosted runner does not expose `/dev/kvm`. The launcher intentionally starts the emulator directly instead of using a generic action whose unconditional input-unlock step is unreliable while this slow software image is still bringing up Android services. Before Flutter starts, `scripts/wait_for_android_ci_services.sh` requires the package, input, and settings services plus the package manager to pass a single combined `adb` probe repeatedly for 90 seconds; this avoids relying on the image's early `boot_completed` signal without multiplying slow ADB round trips. Every ADB operation has its own timeout so a stalled ADB daemon cannot consume the whole job silently; `ANDROID_ADB_TIMEOUT_SECONDS` can override the 30-second default. If boot or readiness times out, the launcher prints the emulator log and the readiness script prints Android logcat output.
 
 ### Local: Prerequisites
 
 - **Android SDK**: Install via [Android Studio](https://developer.android.com/studio) or the [command-line tools](https://developer.android.com/studio#command-tools). Set `ANDROID_HOME` or `ANDROID_SDK_ROOT` to the SDK root (e.g. `~/Library/Android/sdk` on macOS).
 - **Platform tools**: Include `adb` (usually in `$ANDROID_HOME/platform-tools`).
-- **Emulator**: Install the "Android Emulator" package and a system image from SDK Manager (e.g. API 30, `google_apis`, `x86_64` or `arm64-v8a` for Apple Silicon).
+- **Emulator**: Install the "Android Emulator" package and a system image from SDK Manager (e.g. API 31, `google_atd`, `x86_64` or `arm64-v8a` for Apple Silicon).
+- **Linux CI**: `/dev/kvm` is recommended for speed, but the current workflow can run without it using software emulation.
 
 ### Local: Running integration tests
 
@@ -34,10 +35,10 @@ If you need to create an AVD, install a system image first, then create the AVD 
 
 ```bash
 # Intel / AMD (x86_64)
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-30;google_apis;x86_64"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-31;google_atd;x86_64"
 
 # Apple Silicon (arm64-v8a)
-$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-30;google_apis;arm64-v8a"
+$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-31;google_atd;arm64-v8a"
 ```
 
 ### Troubleshooting
@@ -86,15 +87,27 @@ $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-30;goog
 
 ---
 
+## Linux desktop
+
+Linux integration tests require CMake, Ninja, Clang, `pkg-config`, GTK 3 development headers, and Xvfb on headless runners. The CI workflow installs these through [`.github/actions/setup-linux-dependencies/action.yml`](../../.github/actions/setup-linux-dependencies/action.yml), then runs:
+
+```bash
+cd zstandard_linux/example
+flutter build linux --debug
+xvfb-run --auto-servernum flutter test integration_test/ -d linux
+```
+
+The Linux runner must be Debian/Ubuntu-based and allow passwordless `sudo` for the dependency setup action.
+
 ## Web (Chrome + ChromeDriver)
 
 Web tests run in Chrome. The script runs both **unit tests** (`flutter test -d chrome`) and **integration tests** (`flutter drive` with a local web server and ChromeDriver).
 
 ### Prerequisites
 
-- **Chrome**: Installed and on PATH.
+- **Chrome**: Installed and on PATH. GitHub Actions installs Chrome for Testing with `browser-actions/setup-chrome@v2`.
 - **ChromeDriver** (for integration tests only): Must be on PATH and listen on port **4444**. Flutter uses it to drive the browser for integration tests.
-  - Install: `brew install chromedriver` (macOS), or [download](https://googlechromelabs.github.io/chrome-for-testing/) a version that matches your Chrome.
+  - Install locally with `brew install chromedriver` (macOS), or [download](https://googlechromelabs.github.io/chrome-for-testing/) a version that matches your Chrome. CI installs the matching driver automatically.
   - **macOS**: If a security popup says "chromedriver cannot be opened" or "Apple could not verify...", remove the quarantine attribute:  
     `xattr -d com.apple.quarantine "$(which chromedriver)"`  
     If that fails (e.g. symlink), use the real binary path (e.g. `/opt/homebrew/Caskroom/chromedriver/<version>/chromedriver-mac-arm64/chromedriver`).
@@ -111,7 +124,7 @@ From the repo root:
 This runs:
 
 1. **Unit tests** in Chrome (`zstandard_web` package tests).
-2. **Integration tests** via `flutter drive --target=integration_test/... -d web-server`, which starts a local server and uses ChromeDriver to control Chrome (headless). If ChromeDriver is not running on port 4444, the script tries to start it; if that fails, integration tests are skipped and the script still succeeds if unit tests passed.
+2. **Integration tests** via `flutter drive --target=integration_test/... -d web-server`, which starts a local server and uses ChromeDriver to control Chrome. On Linux the script uses Xvfb. If ChromeDriver is unavailable or fails to start, the script fails; use `ZSTANDARD_SKIP_WEB=1` only for an intentional partial local run.
 
 ### Running integration tests manually
 
@@ -150,4 +163,4 @@ flutter test -d chrome
 
 - **Android**: Reuse a single emulator and avoid closing it between test runs to save boot time. Leave the emulator running and run `./scripts/test_android_integration.sh` as needed.
 - **iOS**: Similarly, leaving the simulator booted between runs avoids repeated boot time.
-- **CI**: Self-hosted runners with pre-created AVDs and simulators can reduce job time. Ensure `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) and Xcode are configured on the runner.
+- **CI**: Self-hosted runners with pre-created AVDs and simulators can reduce job time. Ensure `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) is available for Linux Android jobs; KVM is optional for the current software-emulation configuration, and Xcode is configured for Apple jobs.
