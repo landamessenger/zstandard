@@ -9,12 +9,17 @@ permissions:
   contents: read
 jobs:
   private-prefix:
-    name: Rootless Linux native toolchain
+    name: Rootless Linux native toolchain (${{ matrix.ubuntu }})
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on:
       group: vypdev
       labels: [self-hosted, macOS, ARM64]
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        ubuntu: ['22.04', '24.04']
     steps:
       - uses: actions/checkout@v6
         with:
@@ -36,6 +41,8 @@ jobs:
           echo "LINUX_CONTRACT_STATE=$state" >> "$GITHUB_ENV"
       - name: Execute without privileges or a host Docker socket
         shell: bash
+        env:
+          UBUNTU_VERSION: ${{ matrix.ubuntu }}
         run: |
           set -euo pipefail
           docker_host="$(docker context inspect --format '{{.Endpoints.docker.Host}}')"
@@ -44,5 +51,5 @@ jobs:
           chmod 600 "$docker_config/config.json"
           DOCKER_HOST="$docker_host" DOCKER_CONTEXT='' DOCKER_AUTH_CONFIG='' DOCKER_CONFIG="$docker_config" \
             docker run --rm --platform linux/amd64 --cpus 1 --memory 4g --user 1000:1000 \
-              -e HOME=/tmp -v "$LINUX_CONTRACT_STATE:/contract:ro" ubuntu:24.04 \
+              -e HOME=/tmp -v "$LINUX_CONTRACT_STATE:/contract:ro" "ubuntu:$UBUNTU_VERSION" \
               /bin/bash /contract/check.sh

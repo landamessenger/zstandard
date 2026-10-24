@@ -120,7 +120,9 @@ jobs:
 
       - name: Build iOS example
         working-directory: zstandard_ios/example
-        run: flutter build ios --simulator --debug --no-codesign
+        run: |
+          set -o pipefail
+          flutter build ios --simulator --debug --no-codesign --verbose 2>&1 | tee "$RUNNER_TEMP/ios-build.log"
 
       - name: Copy generated Flutter framework for SwiftPM integration tests
         if: matrix.dependency_manager == 'swiftpm' && matrix.source == 'pub-cache'
@@ -170,7 +172,9 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: ios-simulator-diagnostics-${{ matrix.dependency_manager }}-${{ matrix.source }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/ios-simulator-diagnostics.txt
+          path: |
+            ${{ runner.temp }}/ios-simulator-diagnostics.txt
+            ${{ runner.temp }}/ios-build.log
           if-no-files-found: ignore
 
       - name: Remove this job's iOS simulator

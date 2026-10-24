@@ -28,6 +28,10 @@ Web jobs select the private browser dependency set. Chrome for Testing and its
 matching driver are downloaded without sudo or host dependency installation.
 The rootless contract also launches the real downloaded browser and verifies
 its page content; a version-only check is insufficient.
+The two-case native contract covers Ubuntu 22.04 and 24.04. Browser libraries
+reuse installed packages or select the available time64/legacy names from
+private APT indexes, including private binary caches. Both versions must compile
+GTK and AArch64 probes, execute LCOV and launch Chrome without changing host dpkg.
 
 Android profiles export runtime tool paths without host header/library
 search variables that would override the NDK sysroot. The mixed x86_64/AArch64
