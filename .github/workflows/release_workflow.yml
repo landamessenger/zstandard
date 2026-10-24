@@ -1148,11 +1148,15 @@ jobs:
       labels: [self-hosted, codex, Linux]
     needs: [finalize_release]
     steps:
-      - name: Git Board Flow - deploy success notification
+      - name: Report verified package publication
+        if: inputs.issue != '' && inputs.issue != '-1'
         continue-on-error: true
-        uses: vypdev/copilot@v2
+        uses: vypdev/copilot@v3
         with:
-          debug: ${{ vars.DEBUG }}
-          single-action: deployed_action
+          single-action: publish_issue_comment
           single-action-issue: ${{ inputs.issue }}
+          issue-workflow-profile: ${{ vars.COPILOT_ISSUE_WORKFLOW_PROFILE || '' }}
+          single-action-message: |
+            Published Zstandard ${{ inputs.version }} to pub.dev and finalized its GitHub Release.
+            All ten immutable package versions were verified. Branch integration requires reviewed pull requests.
           token: ${{ secrets.PAT }}

@@ -59,7 +59,7 @@ If you need to release without the full workflow:
 6. **Tag** the release only after candidate checks: `git tag vX.Y.Z` (e.g. `v1.5.0`) and push the tag.
 7. **Create** a draft GitHub release, upload checksums/package archives, and finalize it only after pub.dev verification.
 
-After publication, a separate workflow integrates the release branch into `develop` and `master`. The release workflow does not alter either branch or their rulesets.
+After publication, integrate the release branch into `develop` and `master` through reviewed pull requests under repository policy. The optional launcher-issue notification uses Copilot v3 and does not merge branches. This custom package workflow does not create a Copilot deployment operation; its publication notification cannot replace branch reconciliation. The release workflow does not alter either protected branch or their rulesets.
 
 ## Publishing to pub.dev
 
