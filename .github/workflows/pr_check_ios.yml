@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -14,19 +13,24 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.41.4' }}
+  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
 
 jobs:
   check_ios_analyze:
     name: Analyze iOS
-    runs-on: [self-hosted, macOS, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_ios
@@ -38,39 +42,58 @@ jobs:
 
   check_ios_test:
     name: Test iOS
-    runs-on: [self-hosted, macOS, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_ios/example
         run: flutter pub get
 
-      - name: Boot iOS simulator
-        run: |
-          chmod +x scripts/manage_ios_simulator.sh
-          ./scripts/manage_ios_simulator.sh start
+      - name: Boot an isolated iOS simulator
+        id: ios-simulator
+        timeout-minutes: 4
+        run: python3 .github/scripts/start_ios_simulator.py
 
       - name: Run integration tests
+        working-directory: zstandard_ios/example
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
+        run: flutter test integration_test/ -d "$DEVICE_ID"
+
+      - name: Remove this job's iOS simulator
+        if: ${{ always() && steps.ios-simulator.outputs.device-id != '' }}
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
         run: |
-          DEVICE_ID=$(./scripts/manage_ios_simulator.sh device-id)
-          cd zstandard_ios/example && flutter test integration_test/ -d "$DEVICE_ID"
+          xcrun simctl shutdown "$DEVICE_ID" 2>/dev/null || true
+          xcrun simctl delete "$DEVICE_ID"
 
   check_ios_test_from_pub_cache:
     name: Test iOS (from pub cache)
-    runs-on: [self-hosted, macOS, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Remove zstandard_native to force resolution from pub cache
         run: rm -rf zstandard_native
@@ -87,26 +110,40 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Boot iOS simulator
-        run: |
-          chmod +x scripts/manage_ios_simulator.sh
-          ./scripts/manage_ios_simulator.sh start
+      - name: Boot an isolated iOS simulator
+        id: ios-simulator
+        timeout-minutes: 4
+        run: python3 .github/scripts/start_ios_simulator.py
 
       - name: Run integration tests (C sources from pub cache)
+        working-directory: zstandard_ios/example
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
+        run: flutter test integration_test/ -d "$DEVICE_ID"
+
+      - name: Remove this job's iOS simulator
+        if: ${{ always() && steps.ios-simulator.outputs.device-id != '' }}
+        env:
+          DEVICE_ID: ${{ steps.ios-simulator.outputs.device-id }}
         run: |
-          DEVICE_ID=$(./scripts/manage_ios_simulator.sh device-id)
-          cd zstandard_ios/example && flutter test integration_test/ -d "$DEVICE_ID"
+          xcrun simctl shutdown "$DEVICE_ID" 2>/dev/null || true
+          xcrun simctl delete "$DEVICE_ID"
 
   check_ios_publish_dry_run:
     name: Dry Run Publish iOS
-    runs-on: [self-hosted, macOS, X64]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_ios

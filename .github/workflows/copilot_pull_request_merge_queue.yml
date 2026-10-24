@@ -10,7 +10,9 @@ jobs:
     # GitHub required checks match the job name. Keep this identical to normal
     # PR analysis while isolating merge-group runs in their own workflow.
     name: Copilot - Pull Request
-    runs-on: ubuntu-latest
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     timeout-minutes: 10
     permissions:
       checks: write

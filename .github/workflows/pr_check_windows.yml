@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -13,13 +12,23 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION || '3.47.2' }}
 
 jobs:
   check_windows_analyze:
     name: Analyze Windows
-    runs-on: [self-hosted, Windows]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Prepare Flutter SDK
+        uses: ./.github/actions/setup-flutter-windows
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -33,9 +42,17 @@ jobs:
 
   check_windows_test:
     name: Test Windows
-    runs-on: [self-hosted, Windows]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Prepare Flutter SDK
+        uses: ./.github/actions/setup-flutter-windows
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies
         working-directory: zstandard_windows
@@ -59,9 +76,17 @@ jobs:
 
   check_windows_test_from_pub_cache:
     name: Test Windows (from pub cache)
-    runs-on: [self-hosted, Windows]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Prepare Flutter SDK
+        uses: ./.github/actions/setup-flutter-windows
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Remove zstandard_native to force resolution from pub cache
         shell: cmd
@@ -84,9 +109,17 @@ jobs:
 
   check_windows_publish_dry_run:
     name: Dry Run Publish Windows
-    runs-on: [self-hosted, Windows]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Prepare Flutter SDK
+        uses: ./.github/actions/setup-flutter-windows
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Get dependencies
         working-directory: zstandard_windows

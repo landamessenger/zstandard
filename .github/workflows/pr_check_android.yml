@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - '**'
-      - '!master'
   push:
     branches:
       - develop
@@ -19,14 +18,19 @@ env:
 jobs:
   check_android_analyze:
     name: Analyze Android
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_android
@@ -38,14 +42,19 @@ jobs:
 
   check_android_test:
     name: Test Android
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_android/example
@@ -57,28 +66,42 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Prepare isolated Android build tools
+        uses: ./.github/actions/prepare-android-integration
+
+      - name: Prepare Android command-line tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
       - name: Run integration tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           target: google_apis
           profile: pixel_4
-          arch: x86_64
+          arch: arm64-v8a
+          ndk: 28.2.13676358
           avd-name: zstandard_ci_test
           emulator-port: 5554
           script: |
-            cd zstandard_android/example && flutter test integration_test/ -d emulator-${EMULATOR_PORT}
+            cd zstandard_android/example && env HOME="$ZSTANDARD_FLUTTER_PROFILE" XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_PROFILE/config" flutter test integration_test/ -d emulator-${EMULATOR_PORT}
 
   check_android_test_from_pub_cache:
     name: Test Android (from pub cache)
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Remove zstandard_native to force resolution from pub cache
         run: rm -rf zstandard_native
@@ -101,28 +124,42 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Prepare isolated Android build tools
+        uses: ./.github/actions/prepare-android-integration
+
+      - name: Prepare Android command-line tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
       - name: Run integration tests on emulator (from pub cache)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           target: google_apis
           profile: pixel_4
-          arch: x86_64
+          arch: arm64-v8a
+          ndk: 28.2.13676358
           avd-name: zstandard_ci_test_pubcache
           emulator-port: 5556
           script: |
-            cd zstandard_android/example && flutter test integration_test/ -d emulator-${EMULATOR_PORT}
+            cd zstandard_android/example && env HOME="$ZSTANDARD_FLUTTER_PROFILE" XDG_CONFIG_HOME="$ZSTANDARD_FLUTTER_PROFILE/config" flutter test integration_test/ -d emulator-${EMULATOR_PORT}
 
   check_android_publish_dry_run:
     name: Dry Run Publish Android
-    runs-on: [self-hosted, macOS]
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+          cache-path: '${{ runner.tool_cache }}/zstandard-flutter-v2/:channel:-:version:-:arch:'
 
       - name: Get dependencies
         working-directory: zstandard_android

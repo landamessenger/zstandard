@@ -15,7 +15,9 @@ on:
 jobs:
   observe-approval:
     name: Copilot - Pull Request Approval
-    runs-on: ubuntu-latest
+    runs-on:
+      group: vypdev
+      labels: [self-hosted, codex, Linux]
     timeout-minutes: 15
     concurrency:
       # Some workflow_run payloads omit the PR association. A repository-wide
