@@ -23,3 +23,14 @@ packages into a private prefix with their dependency closure. It never runs
 sudo, package maintainer scripts, dpkg repair or host package installation.
 Headers, libraries and pkg-config metadata combine that prefix with read-only
 links to the installed toolchain. The host package database remains unchanged.
+
+Web jobs select the private browser dependency set. Chrome for Testing and its
+matching driver are downloaded without sudo or host dependency installation.
+The rootless contract also launches the real downloaded browser and verifies
+its page content; a version-only check is insufficient.
+
+Android profiles export runtime tool paths without host header/library
+search variables that would override the NDK sysroot. The mixed x86_64/AArch64
+release job retains private native metadata and clears those variables only
+for the cross build, preserving the AArch64 compiler sysroot. WebAssembly
+regeneration uses the same isolation for Emscripten.

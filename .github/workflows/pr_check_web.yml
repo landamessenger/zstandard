@@ -52,6 +52,7 @@ jobs:
       - uses: ./.github/actions/setup-linux-dependencies
         with:
           desktop: 'true'
+          browser: 'true'
 
       - uses: ./.github/actions/setup-flutter
         with:
@@ -71,7 +72,8 @@ jobs:
         with:
           chrome-version: stable
           install-chromedriver: true
-          install-dependencies: true
+          install-dependencies: false
+          no-sudo: true
 
       - name: Verify browser toolchain
         run: |
@@ -89,7 +91,9 @@ jobs:
           # 3.1.69 before compiling zstandard_native/src/zstd.
           EMSDK_REF: a36df02dc438e8b02f91122a4c62eeecb6784272
           EMSCRIPTEN_VERSION: '3.1.69'
-        run: bash scripts/build_web_wasm.sh
+        run: |
+          env -u CPATH -u LIBRARY_PATH -u PKG_CONFIG_PATH -u PKG_CONFIG_SYSROOT_DIR -u CMAKE_PREFIX_PATH \
+            bash scripts/build_web_wasm.sh
 
       - name: Verify generated WebAssembly is committed and synchronized
         run: |

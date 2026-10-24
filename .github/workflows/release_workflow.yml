@@ -299,10 +299,14 @@ jobs:
           cmake --build zstandard_cli/builders/linux_x64/build --config Release --parallel
           mv zstandard_cli/builders/linux_x64/build/libzstandard_linux.so \
             zstandard_cli/lib/src/bin/libzstandard_linux_x64.so
-          cmake -S zstandard_cli/builders/linux_arm -B zstandard_cli/builders/linux_arm/build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=zstandard_cli/builders/linux_arm/arm64-toolchain.cmake
-          cmake --build zstandard_cli/builders/linux_arm/build --config Release --parallel
+          (
+            # Host development headers must not override the AArch64 sysroot.
+            unset CPATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_SYSROOT_DIR CMAKE_PREFIX_PATH
+            cmake -S zstandard_cli/builders/linux_arm -B zstandard_cli/builders/linux_arm/build \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_TOOLCHAIN_FILE=zstandard_cli/builders/linux_arm/arm64-toolchain.cmake
+            cmake --build zstandard_cli/builders/linux_arm/build --config Release --parallel
+          )
           mv zstandard_cli/builders/linux_arm/build/libzstandard_linux.so \
             zstandard_cli/lib/src/bin/libzstandard_linux_arm64.so
           x64_machine="$(readelf -h zstandard_cli/lib/src/bin/libzstandard_linux_x64.so | sed -n 's/^ *Machine: *//p')"
@@ -530,6 +534,7 @@ jobs:
       - uses: ./.github/actions/setup-linux-dependencies
         with:
           desktop: 'true'
+          browser: 'true'
       - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -538,7 +543,8 @@ jobs:
         with:
           chrome-version: stable
           install-chromedriver: true
-          install-dependencies: true
+          install-dependencies: false
+          no-sudo: true
       - name: Build and run Web integration tests
         env:
           CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
